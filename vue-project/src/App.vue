@@ -9,6 +9,19 @@ import LogIn from "@/components/LogIn.vue";
 import { defineStore } from 'pinia'
 import {globalVariableStorage} from "@/components/Store.js";
 
+async function helloUser() {
+  // const response = (await fetch("http://localhost:8080/api/userHello").then(response => response.text().then(data => {
+  //   const str = data.toString();
+  //   console.log(str);
+  // })));
+  const response2 = (await fetch("/api/userHello").then(response2 => response2.text().then(data => {
+    const str = data.toString();
+    console.log(str);
+  })));
+
+  // const text = response.text()
+  // console.log(String(text));
+}
 
 // TODO make this not be false by default when backend will exist
 // const globalVariableStorage = defineStore("globalVariableStorage", {
@@ -69,6 +82,9 @@ onMounted(() => {
   <Header/>
   <div>
     <router-view></router-view>
+  </div>
+  <div>
+    <button type="button" class="bg-orange-500" @click="helloUser()">Button to test if backend is connected to front</button>
   </div>
   <div>
     <button type="button" class="bg-blue-500" @click="showAllCookies">Button Show cookie</button>
