@@ -83,27 +83,28 @@ onMounted(() => {
   <div>
     <router-view></router-view>
   </div>
-  <div>
-    <button type="button" class="bg-orange-500" @click="helloUser()">Button to test if backend is connected to front</button>
-  </div>
-  <div>
-    <button type="button" class="bg-blue-500" @click="showAllCookies">Button Show cookie</button>
-  </div>
-  <div>
-    <button type="button" class="bg-red-300" @click="addCookie"> Add a cookie </button>
-  </div>
-  <div>
-    <button type="button" class="bg-green-300" @click="removeCookie">Delete a cookie</button>
-  </div>
-  <div>
-    <button type="button" class="bg-yellow-300" @click="isAuthCookiePresent">Check if auth cookie is present or not and modify based on it</button>
-  </div>
-  <div v-if="store.getAuthTokenState" class="bg-pink-300">
-    <LogIn/>
-  </div>
-  <div>
-    <div>Main page content</div>
-  </div>
+<!--  <div>-->
+<!--    <button type="button" class="bg-orange-500" @click="helloUser()">Button to test if backend is connected to front</button>-->
+<!--  </div>-->
+<!--  <div>-->
+<!--    <button type="button" class="bg-blue-500" @click="showAllCookies">Button Show cookie</button>-->
+<!--  </div>-->
+<!--  <div>-->
+<!--    <button type="button" class="bg-red-300" @click="addCookie"> Add a cookie </button>-->
+<!--  </div>-->
+<!--  <div>-->
+<!--    <button type="button" class="bg-green-300" @click="removeCookie">Delete a cookie</button>-->
+<!--  </div>-->
+<!--  <div>-->
+<!--    <button type="button" class="bg-yellow-300" @click="isAuthCookiePresent">Check if auth cookie is present or not and modify based on it</button>-->
+<!--  </div>-->
+<!--  <div v-if="store.getAuthTokenState" class="bg-pink-300">-->
+<!--    <LogIn/>-->
+<!--  </div>-->
+
+<!--  <div>-->
+<!--    <div>Main page content</div>-->
+<!--  </div>-->
 
   <Footer/>
 </template>
