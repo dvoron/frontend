@@ -1,106 +1,28 @@
 <script setup>
-import LogIn from "@/components/LogIn.vue";
-import {globalVariableStorage} from "@/components/Store.js";
-import {onMounted} from "vue";
-import Cookies from "js-cookie";
-import Register from "@/components/Register.vue";
+import { useAuthStore } from "@/stores/auth.js"
 
-
-async function helloUser() {
-  // const response = (await fetch("http://localhost:8080/api/userHello").then(response => response.text().then(data => {
-  //   const str = data.toString();
-  //   console.log(str);
-  // })));
-  const response2 = (await fetch("/api/userHello").then(response2 => response2.text().then(data => {
-    const str = data.toString();
-    console.log(str);
-  })));
-
-  // const text = response.text()
-  // console.log(String(text));
-}
-
-// TODO make this not be false by default when backend will exist
-// const globalVariableStorage = defineStore("globalVariableStorage", {
-//       state: () => ({
-//         authToken: false
-//       }),
-//   getters: {
-//     getAuthTokenState: state => !!state.authToken
-//   },
-//   actions: {
-//         setFalse() {
-//           this.authToken = false
-//         },
-//         setTrue() {
-//           this.authToken = true
-//         }
-//   }
-//     }
-// )
-const store = globalVariableStorage()
-
-// let authToken = ref(false)
-function isAuthCookiePresent() {
-  if (Cookies.get("tmp_auth_token") !== undefined) {
-    store.setTrue()
-    // $store.authToken.setTrue()
-    // authToken.value = true;
-  } else {
-    store.setFalse()
-    // $store.authToken.setFalse()
-    // authToken.value = false;
-  }
-}
-function showAllCookies() {
-  // return console.log(document.cookie)
-  return console.log(Cookies.get())
-}
-
-function addCookie() {
-  Cookies.set("tmp_auth_token", "tmp_auth_token_value");
-}
-function removeCookie() {
-  Cookies.remove("tmp_auth_token")
-}
-onMounted(() => {
-      isAuthCookiePresent()
-    }
-
-)
+const authStore = useAuthStore()
 </script>
 
 <template>
-  <div>
-    <button type="button" class="bg-orange-500" @click="helloUser()">Button to test if backend is connected to front</button>
-  </div>
-  <div>
-    <button type="button" class="bg-blue-500" @click="showAllCookies">Button Show cookie</button>
-  </div>
-  <div>
-    <button type="button" class="bg-red-300" @click="addCookie"> Add a cookie </button>
-  </div>
-  <div>
-    <button type="button" class="bg-green-300" @click="removeCookie">Delete a cookie</button>
-  </div>
-  <div>
-    <button type="button" class="bg-yellow-300" @click="isAuthCookiePresent">Check if auth cookie is present or not and modify based on it</button>
-  </div>
-  <router-view></router-view>
-  <div v-if="store.getAuthTokenState" class="bg-pink-300">
-    <LogIn/>
-  </div>
+  <div class="p-8">
+    <div v-if="authStore.isLoggedIn">
+      <h1 class="text-2xl font-semibold">Welcome back!</h1>
+      <p class="text-gray-600 mt-2">You are logged in.</p>
+    </div>
+    <div v-else>
+      <h1 class="text-2xl font-semibold">Welcome!</h1>
+      <p class="text-gray-600 mt-2">
+        Please
+        <router-link to="/home/login" class="text-teal-600 hover:underline">login</router-link>
+        or
+        <router-link to="/home/register" class="text-teal-600 hover:underline">register</router-link>
+        to continue.
+      </p>
+    </div>
 
-
-
-  <div>
-    <div>Main page content</div>
+    <router-view />
   </div>
-<div>
-  <h1> This is home page</h1>
-</div>
 </template>
 
-<style scoped>
-
-</style>
+<style scoped></style>

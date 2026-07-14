@@ -1,58 +1,51 @@
 <script setup>
+import { useAuthStore } from "@/stores/auth.js"
+import { logout } from "@/services/UserService.js"
+import { useRouter } from "vue-router"
 
+const authStore = useAuthStore()
+const router = useRouter()
 
-
-
-
-
+async function onLogout() {
+  await logout(authStore.accessToken)
+  authStore.clearTokens()
+  router.push({ name: "login" })
+}
 </script>
 
 <template>
-<!--  <header>-->
-<!--  <div class="container w-screen">-->
-    <nav class="bg-teal-200 flex justify-between margin-left-10-percent margin-right-10-percent header-max-height">
-
-      <div class="text-5xl">
-<!--        <div class="inline h-full flex justify-start">-->
-<!--          <img src="/src/assets/images/TestLogo.png" alt="Website logo" class="">-->
-<!--        </div>-->
-<!--        <div class="container inline">-->
-          <img src="/src/assets/images/TestLogo.png" alt="logo" class="inline h-full pb-2.5" />
-<!--        </div>-->
-<!--        <img src="/src/assets/images/TestLogo.png" alt="logo" class="inline object-contain h-full " />-->
-<!--        <img src="/src/assets/images/TestLogo.png" alt="Website logo" class="w-full h-full object-contain" />-->
-<!--        <router-link class="px-3 bg-[url('C:\Users\N0ns3ns\WebstormProjects\frontend\vue-project\src\assets\images\TestLogo.png')]" to="/home">test</router-link>-->
-      </div>
-      <div class="text-5xl">
-        <router-link class="px-3" to="/home">Home</router-link>
-        <router-link class="px-3" to="/about">About</router-link>
-        <router-link class="px-3" to="/contact">Contact</router-link>
-      </div>
-    </nav>
+  <nav class="bg-teal-200 flex justify-between items-center px-6 h-12">
     <div>
-      Text size should be big
+      <router-link class="px-3 text-lg font-bold" to="/home">Home</router-link>
+      <router-link class="px-3" to="/about">About</router-link>
+      <router-link class="px-3" to="/contact">Contact</router-link>
     </div>
-<!--  </div>-->
-<!--  <nav class="w-screen">-->
-<!--      <div class="text-5xl">-->
-<!--        <router-link class="px-3" to="/home">Home</router-link>-->
-<!--        <router-link class="px-3" to="/about">About</router-link>-->
-<!--        <router-link class="px-3" to="/contact">Contact</router-link>-->
-<!--      </div>-->
-<!--  </nav>-->
-<!--  <div class="text">-->
-<!--    Text size should be big-->
-<!--  </div>-->
+
+    <div class="flex items-center gap-3">
+      <template v-if="authStore.isLoggedIn">
+        <button
+          @click="onLogout"
+          class="bg-red-500 hover:bg-red-600 text-white text-sm font-semibold px-4 py-1 rounded"
+        >
+          Logout
+        </button>
+      </template>
+      <template v-else>
+        <router-link
+          to="/home/login"
+          class="bg-teal-600 hover:bg-teal-700 text-white text-sm font-semibold px-4 py-1 rounded"
+        >
+          Login
+        </router-link>
+        <router-link
+          to="/home/register"
+          class="border border-teal-600 text-teal-700 hover:bg-teal-50 text-sm font-semibold px-4 py-1 rounded"
+        >
+          Register
+        </router-link>
+      </template>
+    </div>
+  </nav>
 </template>
 
-<style scoped>
-.margin-left-10-percent {
-  margin-left: 10%
-}
-.margin-right-10-percent {
-  margin-right: 10%
-}
-.header-max-height {
-  max-height: 3rem;
-}
-</style>
+<style scoped></style>

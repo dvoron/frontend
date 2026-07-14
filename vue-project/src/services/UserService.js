@@ -1,38 +1,36 @@
-// services/userService.js
-
 import axios from 'axios'
 
-export async function createUser(dto) {
+export async function login(dto) {
     try {
-        const response = await axios.post('/api/users', {
+        const response = await axios.post('/api/auth/login', {
+            login: dto.login,
+            password: dto.password,
+        })
+        return [response.data, response.status]
+    } catch (error) {
+        return [error.response.data, error.response.status]
+    }
+}
+
+export async function register(dto) {
+    try {
+        const response = await axios.post('/api/auth/register', {
             username: dto.username,
             email: dto.email,
             password: dto.password,
         })
-
         return [response.data, response.status]
     } catch (error) {
-        // return error.response
         return [error.response.data, error.response.status]
     }
-
 }
 
-export async function login(dto) {
+export async function logout(accessToken) {
     try {
-        const response = await axios.post('/api/login', {
-            login: dto.login,
-            password: dto.password,
+        await axios.post('/api/auth/logout', {}, {
+            headers: { Authorization: `Bearer ${accessToken}` }
         })
-        // return await axios.post('/api/login', {
-        //     login: dto.login,
-        //     password: dto.password,
-        // })
-        return [response, response.status]
-        // return [response.data, response.status]
-    } catch (error) {
-        return [error.response.data, error.response.status]
-        // return error.response
-        // return [error.response.data, error.response.status]
+    } catch (_) {
+        // Errors during logout are ignored — tokens are cleared locally regardless
     }
 }
