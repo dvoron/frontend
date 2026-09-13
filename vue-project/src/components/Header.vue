@@ -19,6 +19,7 @@ async function onLogout() {
       <router-link class="px-3 text-lg font-bold" to="/home">Home</router-link>
       <router-link class="px-3" to="/about">About</router-link>
       <router-link class="px-3" to="/contact">Contact</router-link>
+      <router-link v-if="authStore.isLoggedIn" class="px-3" to="/profile">Profile</router-link>
     </div>
 
     <div class="flex items-center gap-3">
