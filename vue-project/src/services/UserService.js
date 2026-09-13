@@ -34,3 +34,25 @@ export async function logout(accessToken) {
         // Errors during logout are ignored — tokens are cleared locally regardless
     }
 }
+
+export async function getUserById(id, accessToken) {
+    try {
+        const response = await axios.get(`/api/${id}`, {
+            headers: { Authorization: `Bearer ${accessToken}` }
+        })
+        return [response.data, response.status]
+    } catch (error) {
+        return [error.response?.data, error.response?.status]
+    }
+}
+
+export async function updateUser(id, user, accessToken) {
+    try {
+        const response = await axios.put(`/api/${id}`, user, {
+            headers: { Authorization: `Bearer ${accessToken}` }
+        })
+        return [response.data, response.status]
+    } catch (error) {
+        return [error.response?.data, error.response?.status]
+    }
+}
