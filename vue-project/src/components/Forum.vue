@@ -1,7 +1,8 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth.js'
 import ForumComment from './ForumComment.vue'
+import { getAllPosts, createPost as apiCreatePost, createComment as apiCreateComment } from '@/services/ForumService.js'
 
 const authStore = useAuthStore()
 
@@ -10,52 +11,21 @@ const getCurrentUsername = () => {
   return authStore.userId || 'Guest'
 }
 
-// Initial mock data
-const posts = ref([
-  {
-    id: 1,
-    author: 'vue_master',
-    title: 'Vue 3 Composition API vs Options API',
-    content: 'I have been using Vue 2 for a while and just started with Vue 3. The Composition API feels a bit weird at first. How is everyone adapting to it?',
-    timestamp: new Date(Date.now() - 86400000).toLocaleString(),
-    showComments: false,
-    newCommentContent: '',
-    comments: [
-      {
-        id: 101,
-        author: 'frontend_dev',
-        content: 'It takes some getting used to, but it is so much better for organizing logic by feature!',
-        timestamp: new Date(Date.now() - 80000000).toLocaleString(),
-        replies: [
-          {
-            id: 102,
-            author: 'vue_master',
-            content: 'That makes sense. Any good tutorials you recommend?',
-            timestamp: new Date(Date.now() - 75000000).toLocaleString(),
-            replies: []
-          }
-        ]
-      },
-      {
-        id: 103,
-        author: 'options_fan',
-        content: 'I still prefer Options API for small components, it feels cleaner.',
-        timestamp: new Date(Date.now() - 50000000).toLocaleString(),
-        replies: []
-      }
-    ]
-  },
-  {
-    id: 2,
-    author: 'css_wizard',
-    title: 'Tailwind in Vue projects?',
-    content: 'Do you guys use Tailwind with Vue? Is it worth switching from standard scoped CSS?',
-    timestamp: new Date(Date.now() - 3600000).toLocaleString(),
-    showComments: false,
-    newCommentContent: '',
-    comments: []
+// State for posts
+const posts = ref([])
+
+const loadPosts = async () => {
+  const [data, status] = await getAllPosts(authStore.accessToken)
+  if (status === 200) {
+    posts.value = data
   }
-])
+}
+
+onMounted(() => {
+  if (authStore.isLoggedIn) {
+    loadPosts()
+  }
+})
 
 const showNewPostForm = ref(false)
 const newPost = ref({
@@ -63,66 +33,55 @@ const newPost = ref({
   content: ''
 })
 
-const createPost = () => {
+const createPost = async () => {
   if (!newPost.value.title.trim() || !newPost.value.content.trim()) return
 
-  posts.value.unshift({
-    id: Date.now(),
-    author: getCurrentUsername(),
-    title: newPost.value.title,
-    content: newPost.value.content,
-    timestamp: new Date().toLocaleString(),
-    showComments: false,
-    newCommentContent: '',
-    comments: []
-  })
-
-  newPost.value.title = ''
-  newPost.value.content = ''
-  showNewPostForm.value = false
+  const [data, status] = await apiCreatePost(newPost.value.title, newPost.value.content, authStore.accessToken)
+  
+  if (status === 200) {
+    posts.value.unshift(data)
+    newPost.value.title = ''
+    newPost.value.content = ''
+    showNewPostForm.value = false
+  }
 }
 
-const addComment = (post) => {
+const addComment = async (post) => {
   if (!post.newCommentContent.trim()) return
 
-  post.comments.push({
-    id: Date.now(),
-    author: getCurrentUsername(),
-    content: post.newCommentContent,
-    timestamp: new Date().toLocaleString(),
-    replies: []
-  })
-
-  post.newCommentContent = ''
+  const [data, status] = await apiCreateComment(post.id, null, post.newCommentContent, authStore.accessToken)
+  
+  if (status === 200) {
+    post.comments.push(data)
+    post.newCommentContent = ''
+  }
 }
 
 // Function to recursively find a comment and add a reply
-const addReplyToComment = (commentsList, parentId, content) => {
+const addReplyToComment = (commentsList, parentId, newComment) => {
   for (let comment of commentsList) {
     if (comment.id === parentId) {
       if (!comment.replies) comment.replies = []
-      comment.replies.push({
-        id: Date.now(),
-        author: getCurrentUsername(),
-        content: content,
-        timestamp: new Date().toLocaleString(),
-        replies: []
-      })
+      comment.replies.push(newComment)
       return true
     }
     
     if (comment.replies && comment.replies.length > 0) {
-      const found = addReplyToComment(comment.replies, parentId, content)
+      const found = addReplyToComment(comment.replies, parentId, newComment)
       if (found) return true
     }
   }
   return false
 }
 
-const handleReply = (postId, parentCommentId, content) => {
-  const post = posts.value.find(p => p.id === postId)
-  if (post) {
-    addReplyToComment(post.comments, parentCommentId, content)
+const handleReply = async (postId, parentCommentId, content) => {
+  const [data, status] = await apiCreateComment(postId, parentCommentId, content, authStore.accessToken)
+  
+  if (status === 200) {
+    const post = posts.value.find(p => p.id === postId)
+    if (post) {
+      addReplyToComment(post.comments, parentCommentId, data)
+    }
   }
 }
 </script>
