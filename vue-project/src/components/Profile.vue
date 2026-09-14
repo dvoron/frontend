@@ -1,7 +1,8 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useAuthStore } from '@/stores/auth.js'
 import { getUserById, updateUser } from '@/services/UserService.js'
+import { getAllPosts } from '@/services/ForumService.js'
 import { useRouter } from 'vue-router'
 
 const authStore = useAuthStore()
@@ -25,6 +26,46 @@ const originalUser = ref({
   email: ''
 })
 
+const userPosts = ref([])
+const userComments = ref([])
+const activityFilter = ref('both') // 'posts', 'comments', 'both'
+
+const loadUserActivity = async () => {
+  const [data, status] = await getAllPosts(authStore.accessToken)
+  if (status === 200) {
+    const allPosts = data
+    
+    // Filter posts
+    userPosts.value = allPosts.filter(post => post.author === user.value.username)
+    
+    // Filter comments
+    const comments = []
+    
+    const extractUserComments = (commentList, post) => {
+      if (!commentList) return
+      for (const comment of commentList) {
+        if (comment.author === user.value.username) {
+          comments.push({
+            ...comment,
+            postTitle: post.title,
+            postId: post.id
+          })
+        }
+        if (comment.replies && comment.replies.length > 0) {
+          extractUserComments(comment.replies, post)
+        }
+      }
+    }
+    
+    for (const post of allPosts) {
+      extractUserComments(post.comments, post)
+    }
+    
+    // Sort comments by id descending (assuming higher ID is newer)
+    userComments.value = comments.sort((a, b) => b.id - a.id)
+  }
+}
+
 onMounted(async () => {
   const userId = authStore.userId
   if (!userId) {
@@ -39,6 +80,8 @@ onMounted(async () => {
     
     originalUser.value.username = user.value.username
     originalUser.value.email = user.value.email
+    
+    await loadUserActivity()
   } else {
     errorMessage.value = 'Failed to load profile data.'
   }
@@ -89,11 +132,45 @@ const handleSave = async () => {
     user.value.oldPassword = ''
     user.value.newPassword = ''
     isEditing.value = false
+    await loadUserActivity()
   } else {
     errorMessage.value = data?.message || 'Failed to update profile.'
   }
   isSaving.value = false
 }
+
+const displayedActivity = computed(() => {
+  let activity = []
+  
+  if (activityFilter.value === 'both' || activityFilter.value === 'posts') {
+    const mappedPosts = userPosts.value.map(post => ({
+      type: 'post',
+      id: `post-${post.id}`,
+      originalId: post.id,
+      title: post.title,
+      content: post.content,
+      timestamp: post.timestamp
+    }))
+    activity = [...activity, ...mappedPosts]
+  }
+  
+  if (activityFilter.value === 'both' || activityFilter.value === 'comments') {
+    const mappedComments = userComments.value.map(comment => ({
+      type: 'comment',
+      id: `comment-${comment.id}`,
+      originalId: comment.id,
+      postTitle: comment.postTitle,
+      content: comment.content,
+      timestamp: comment.timestamp
+    }))
+    activity = [...activity, ...mappedComments]
+  }
+  
+  // Sort by timestamp if possible, otherwise just leave as is or sort by originalId
+  // Assuming timestamp is a string, we might not be able to sort perfectly without parsing.
+  // We'll sort by originalId descending as a proxy for recency.
+  return activity.sort((a, b) => b.originalId - a.originalId)
+})
 </script>
 
 <template>
@@ -200,6 +277,58 @@ const handleSave = async () => {
             </div>
           </form>
         </div>
+      </div>
+    </div>
+
+    <!-- User Activity Section -->
+    <div v-if="!isLoading && !isEditing" class="mt-8 bg-white shadow overflow-hidden sm:rounded-lg border border-gray-200">
+      <div class="px-4 py-5 sm:px-6 bg-gray-50 border-b border-gray-200 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+        <div>
+          <h3 class="text-lg leading-6 font-medium text-gray-900">My Activity</h3>
+          <p class="mt-1 max-w-2xl text-sm text-gray-500">Your posts and comments from the forum.</p>
+        </div>
+        <div class="flex space-x-2">
+          <button @click="activityFilter = 'both'" :class="[activityFilter === 'both' ? 'bg-teal-100 text-teal-800 border-teal-200' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50', 'px-3 py-1.5 border rounded-md text-sm font-medium transition-colors']">
+            All Activity
+          </button>
+          <button @click="activityFilter = 'posts'" :class="[activityFilter === 'posts' ? 'bg-teal-100 text-teal-800 border-teal-200' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50', 'px-3 py-1.5 border rounded-md text-sm font-medium transition-colors']">
+            Posts ({{ userPosts.length }})
+          </button>
+          <button @click="activityFilter = 'comments'" :class="[activityFilter === 'comments' ? 'bg-teal-100 text-teal-800 border-teal-200' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50', 'px-3 py-1.5 border rounded-md text-sm font-medium transition-colors']">
+            Comments ({{ userComments.length }})
+          </button>
+        </div>
+      </div>
+      
+      <div class="px-4 py-5 sm:p-6">
+        <div v-if="displayedActivity.length === 0" class="text-center py-8 text-gray-500">
+          No activity found.
+        </div>
+        <ul v-else class="space-y-6">
+          <li v-for="item in displayedActivity" :key="item.id" class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+            <div v-if="item.type === 'post'">
+              <div class="flex justify-between items-start mb-2">
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                  Post
+                </span>
+                <span class="text-xs text-gray-500">{{ item.timestamp }}</span>
+              </div>
+              <h4 class="text-md font-bold text-gray-900 mb-1">{{ item.title }}</h4>
+              <p class="text-sm text-gray-700 whitespace-pre-wrap">{{ item.content }}</p>
+            </div>
+            
+            <div v-else-if="item.type === 'comment'">
+              <div class="flex justify-between items-start mb-2">
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                  Comment
+                </span>
+                <span class="text-xs text-gray-500">{{ item.timestamp }}</span>
+              </div>
+              <p class="text-xs text-gray-500 mb-2">Commented on post: <span class="font-medium text-gray-700">{{ item.postTitle }}</span></p>
+              <p class="text-sm text-gray-700 whitespace-pre-wrap">{{ item.content }}</p>
+            </div>
+          </li>
+        </ul>
       </div>
     </div>
   </div>
