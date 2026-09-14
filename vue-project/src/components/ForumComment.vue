@@ -1,5 +1,8 @@
 <script setup>
 import { ref } from 'vue'
+import { useAuthStore } from '@/stores/auth.js'
+
+const authStore = useAuthStore()
 
 const props = defineProps({
   comment: {
@@ -35,7 +38,7 @@ const handleChildReply = (parentId, content) => {
       {{ comment.content }}
     </div>
     
-    <div class="comment-actions">
+    <div class="comment-actions" v-if="authStore.isLoggedIn">
       <button class="action-btn" @click="showReplyInput = !showReplyInput">Reply</button>
     </div>
 

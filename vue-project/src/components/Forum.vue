@@ -22,9 +22,7 @@ const loadPosts = async () => {
 }
 
 onMounted(() => {
-  if (authStore.isLoggedIn) {
-    loadPosts()
-  }
+  loadPosts()
 })
 
 const showNewPostForm = ref(false)
@@ -90,7 +88,7 @@ const handleReply = async (postId, parentCommentId, content) => {
   <div class="forum-container">
     <div class="header">
       <h1>Community Forum</h1>
-      <button class="btn-primary" @click="showNewPostForm = !showNewPostForm">
+      <button v-if="authStore.isLoggedIn" class="btn-primary" @click="showNewPostForm = !showNewPostForm">
         {{ showNewPostForm ? 'Cancel' : 'Create Post' }}
       </button>
     </div>
@@ -126,7 +124,7 @@ const handleReply = async (postId, parentCommentId, content) => {
         <!-- Comments Section -->
         <div v-if="post.showComments" class="comments-section">
           <!-- Add Comment to Post -->
-          <div class="add-comment">
+          <div v-if="authStore.isLoggedIn" class="add-comment">
             <p>Comment as <strong>{{ getCurrentUsername() }}</strong></p>
             <textarea v-model="post.newCommentContent" placeholder="What are your thoughts?" rows="3" class="form-input"></textarea>
             <div class="comment-btn-container">
