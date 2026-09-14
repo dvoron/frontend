@@ -11,6 +11,7 @@ import LogIn from "@/components/LogIn.vue";
 import Register from "@/components/Register.vue";
 import Profile from "@/components/Profile.vue";
 import {useAuthStore} from "@/stores/auth.js";
+import Forum from "@/components/Forum.vue";
 
 const router = createRouter({
     history: createWebHistory(),
@@ -31,6 +32,7 @@ const router = createRouter({
             requiresAuth: true,
             }
             },
+        {path: '/forum', name: "forum", component: Forum},
         {path: '/:pathMatch(.*)*', redirect: '/home'}
     ]
 })
