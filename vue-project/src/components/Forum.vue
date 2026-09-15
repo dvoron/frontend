@@ -32,8 +32,8 @@ const newPost = ref({
 })
 
 const createPost = async () => {
-  if (!newPost.value.title.trim() || !newPost.value.content.trim()) return
-  if (newPost.value.title.length > 255 || newPost.value.content.length > 2000) return
+  if (!newPost.value.title.trim()) return
+  if (newPost.value.title.length > 255 || (newPost.value.content || '').length > 2000) return
 
   const [data, status] = await apiCreatePost(newPost.value.title, newPost.value.content, authStore.accessToken)
   
@@ -222,7 +222,6 @@ const handleReply = async (postId, parentCommentId, content) => {
 }
 
 .input-wrapper {
-  position: relative;
   margin-bottom: 12px;
 }
 
@@ -231,12 +230,11 @@ const handleReply = async (postId, parentCommentId, content) => {
 }
 
 .char-counter {
-  position: absolute;
-  bottom: 8px;
-  right: 12px;
+  display: block;
+  text-align: right;
   font-size: 0.75rem;
   color: #888;
-  pointer-events: none;
+  margin-top: 4px;
 }
 
 .char-counter.error {

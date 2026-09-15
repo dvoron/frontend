@@ -129,7 +129,6 @@ textarea:focus {
 }
 
 .input-wrapper {
-  position: relative;
   margin-bottom: 0.5rem;
 }
 
@@ -138,12 +137,11 @@ textarea:focus {
 }
 
 .char-counter {
-  position: absolute;
-  bottom: 8px;
-  right: 12px;
+  display: block;
+  text-align: right;
   font-size: 0.75rem;
   color: #888;
-  pointer-events: none;
+  margin-top: 4px;
 }
 
 .char-counter.error {
