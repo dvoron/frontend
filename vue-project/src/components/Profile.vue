@@ -2,7 +2,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useAuthStore } from '@/stores/auth.js'
 import { getUserById, updateUser } from '@/services/UserService.js'
-import { getAllPosts } from '@/services/ForumService.js'
+import { getUserPosts, getUserComments } from '@/services/ForumService.js'
 import { useRouter } from 'vue-router'
 
 const authStore = useAuthStore()
@@ -31,38 +31,16 @@ const userComments = ref([])
 const activityFilter = ref('both') // 'posts', 'comments', 'both'
 
 const loadUserActivity = async () => {
-  const [data, status] = await getAllPosts(authStore.accessToken)
-  if (status === 200) {
-    const allPosts = data
-    
-    // Filter posts
-    userPosts.value = allPosts.filter(post => post.author === user.value.username)
-    
-    // Filter comments
-    const comments = []
-    
-    const extractUserComments = (commentList, post) => {
-      if (!commentList) return
-      for (const comment of commentList) {
-        if (comment.author === user.value.username) {
-          comments.push({
-            ...comment,
-            postTitle: post.title,
-            postId: post.id
-          })
-        }
-        if (comment.replies && comment.replies.length > 0) {
-          extractUserComments(comment.replies, post)
-        }
-      }
-    }
-    
-    for (const post of allPosts) {
-      extractUserComments(post.comments, post)
-    }
-    
-    // Sort comments by id descending (assuming higher ID is newer)
-    userComments.value = comments.sort((a, b) => b.id - a.id)
+  const userId = authStore.userId
+  
+  const [postsData, postsStatus] = await getUserPosts(userId, authStore.accessToken)
+  if (postsStatus === 200) {
+    userPosts.value = postsData
+  }
+
+  const [commentsData, commentsStatus] = await getUserComments(userId, authStore.accessToken)
+  if (commentsStatus === 200) {
+    userComments.value = commentsData
   }
 }
 

@@ -39,3 +39,25 @@ export async function createComment(postId, parentCommentId, content, accessToke
         return [error.response?.data, error.response?.status]
     }
 }
+
+export async function getUserPosts(userId, accessToken) {
+    try {
+        const response = await axios.get(`/api/forum/users/${userId}/posts`, {
+            headers: { Authorization: `Bearer ${accessToken}` }
+        })
+        return [response.data, response.status]
+    } catch (error) {
+        return [error.response?.data, error.response?.status]
+    }
+}
+
+export async function getUserComments(userId, accessToken) {
+    try {
+        const response = await axios.get(`/api/forum/users/${userId}/comments`, {
+            headers: { Authorization: `Bearer ${accessToken}` }
+        })
+        return [response.data, response.status]
+    } catch (error) {
+        return [error.response?.data, error.response?.status]
+    }
+}
