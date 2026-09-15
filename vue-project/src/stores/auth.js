@@ -20,6 +20,19 @@ export const useAuthStore = defineStore('auth', {
             } catch (e) {
                 return null;
             }
+        },
+        username: (state) => {
+            if (!state.accessToken) return null;
+            try {
+                const base64Url = state.accessToken.split('.')[1];
+                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
+                    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                }).join(''));
+                return JSON.parse(jsonPayload).username;
+            } catch (e) {
+                return null;
+            }
         }
     },
 

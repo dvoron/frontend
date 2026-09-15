@@ -8,7 +8,7 @@ const authStore = useAuthStore()
 
 // Helper to get current username
 const getCurrentUsername = () => {
-  return authStore.userId || 'Guest'
+  return authStore.username || 'Guest'
 }
 
 // State for posts
@@ -33,6 +33,7 @@ const newPost = ref({
 
 const createPost = async () => {
   if (!newPost.value.title.trim() || !newPost.value.content.trim()) return
+  if (newPost.value.title.length > 255 || newPost.value.content.length > 2000) return
 
   const [data, status] = await apiCreatePost(newPost.value.title, newPost.value.content, authStore.accessToken)
   
@@ -46,6 +47,7 @@ const createPost = async () => {
 
 const addComment = async (post) => {
   if (!post.newCommentContent.trim()) return
+  if ((post.newCommentContent || '').length > 1000) return
 
   const [data, status] = await apiCreateComment(post.id, null, post.newCommentContent, authStore.accessToken)
   
@@ -96,10 +98,16 @@ const handleReply = async (postId, parentCommentId, content) => {
     <!-- New Post Form -->
     <div v-if="showNewPostForm" class="new-post-form card">
       <h2>Create a new post</h2>
-      <input v-model="newPost.title" placeholder="Title" class="form-input" />
-      <textarea v-model="newPost.content" placeholder="Text (optional)" class="form-input" rows="4"></textarea>
+      <div class="input-wrapper">
+        <input v-model="newPost.title" placeholder="Title" class="form-input" />
+        <span class="char-counter" :class="{ 'error': newPost.title.length > 255 }">{{ newPost.title.length }}/255</span>
+      </div>
+      <div class="input-wrapper">
+        <textarea v-model="newPost.content" placeholder="Text (optional)" class="form-input" rows="4"></textarea>
+        <span class="char-counter" :class="{ 'error': newPost.content.length > 2000 }">{{ newPost.content.length }}/2000</span>
+      </div>
       <div class="form-actions">
-        <button class="btn-primary" @click="createPost">Post</button>
+        <button class="btn-primary" @click="createPost" :disabled="newPost.title.length > 255 || newPost.content.length > 2000">Post</button>
       </div>
     </div>
 
@@ -126,9 +134,12 @@ const handleReply = async (postId, parentCommentId, content) => {
           <!-- Add Comment to Post -->
           <div v-if="authStore.isLoggedIn" class="add-comment">
             <p>Comment as <strong>{{ getCurrentUsername() }}</strong></p>
-            <textarea v-model="post.newCommentContent" placeholder="What are your thoughts?" rows="3" class="form-input"></textarea>
+            <div class="input-wrapper">
+              <textarea v-model="post.newCommentContent" placeholder="What are your thoughts?" rows="3" class="form-input"></textarea>
+              <span class="char-counter" :class="{ 'error': (post.newCommentContent || '').length > 1000 }">{{ (post.newCommentContent || '').length }}/1000</span>
+            </div>
             <div class="comment-btn-container">
-               <button class="btn-primary" @click="addComment(post)">Comment</button>
+               <button class="btn-primary" @click="addComment(post)" :disabled="(post.newCommentContent || '').length > 1000">Comment</button>
             </div>
           </div>
 
@@ -210,6 +221,28 @@ const handleReply = async (postId, parentCommentId, content) => {
   border-color: #42b883;
 }
 
+.input-wrapper {
+  position: relative;
+  margin-bottom: 12px;
+}
+
+.input-wrapper .form-input {
+  margin-bottom: 0;
+}
+
+.char-counter {
+  position: absolute;
+  bottom: 8px;
+  right: 12px;
+  font-size: 0.75rem;
+  color: #888;
+  pointer-events: none;
+}
+
+.char-counter.error {
+  color: #ff4d4f;
+}
+
 .form-actions {
   display: flex;
   justify-content: flex-end;
@@ -226,8 +259,14 @@ const handleReply = async (postId, parentCommentId, content) => {
   transition: background-color 0.2s;
 }
 
-.btn-primary:hover {
+.btn-primary:hover:not(:disabled) {
   background-color: #33a06f;
+}
+
+.btn-primary:disabled {
+  background-color: #2a5a43;
+  color: #888;
+  cursor: not-allowed;
 }
 
 .post-header {

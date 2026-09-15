@@ -18,6 +18,7 @@ const replyContent = ref('')
 
 const submitReply = () => {
   if (!replyContent.value.trim()) return;
+  if (replyContent.value.length > 1000) return;
   emit('reply', props.comment.id, replyContent.value)
   replyContent.value = ''
   showReplyInput.value = false
@@ -43,9 +44,12 @@ const handleChildReply = (parentId, content) => {
     </div>
 
     <div v-if="showReplyInput" class="reply-input">
-      <textarea v-model="replyContent" placeholder="Write a reply..." rows="2"></textarea>
+      <div class="input-wrapper">
+        <textarea v-model="replyContent" placeholder="Write a reply..." rows="2"></textarea>
+        <span class="char-counter" :class="{ 'error': replyContent.length > 1000 }">{{ replyContent.length }}/1000</span>
+      </div>
       <div class="reply-actions">
-        <button class="btn-submit" @click="submitReply">Submit</button>
+        <button class="btn-submit" @click="submitReply" :disabled="replyContent.length > 1000">Submit</button>
         <button class="btn-cancel" @click="showReplyInput = false">Cancel</button>
       </div>
     </div>
@@ -124,6 +128,28 @@ textarea:focus {
   border-color: #42b883;
 }
 
+.input-wrapper {
+  position: relative;
+  margin-bottom: 0.5rem;
+}
+
+.input-wrapper textarea {
+  margin-bottom: 0;
+}
+
+.char-counter {
+  position: absolute;
+  bottom: 8px;
+  right: 12px;
+  font-size: 0.75rem;
+  color: #888;
+  pointer-events: none;
+}
+
+.char-counter.error {
+  color: #ff4d4f;
+}
+
 .reply-actions {
   display: flex;
   gap: 10px;
@@ -140,6 +166,12 @@ textarea:focus {
 .btn-submit {
   background-color: #42b883;
   color: #1a1a1a;
+}
+
+.btn-submit:disabled {
+  background-color: #2a5a43;
+  color: #888;
+  cursor: not-allowed;
 }
 
 .btn-cancel {
