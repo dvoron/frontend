@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useAuthStore } from '@/stores/auth.js'
-import { getUserById, updateUser } from '@/services/UserService.js'
+import { getUserById, updateUser, deleteUser, login } from '@/services/UserService.js'
 import { getUserPosts, getUserComments } from '@/services/ForumService.js'
 import { useRouter } from 'vue-router'
 
@@ -29,6 +29,41 @@ const originalUser = ref({
 const userPosts = ref([])
 const userComments = ref([])
 const activityFilter = ref('both') // 'posts', 'comments', 'both'
+
+const isDeleting = ref(false)
+
+const handleDelete = async () => {
+  const pwd = window.prompt("Please enter your password to confirm account deletion:")
+  if (pwd === null) return // User cancelled
+
+  if (!pwd) {
+    window.alert("Password is required to delete your account.")
+    return
+  }
+
+  // Verify password using the login endpoint
+  const [loginData, loginStatus] = await login({ login: user.value.email, password: pwd })
+  if (loginStatus !== 200) {
+    window.alert("Incorrect password. Account deletion cancelled.")
+    return
+  }
+
+  const confirmed = window.confirm("Are you sure? This action cannot be undone. This will permanently delete your account and all associated data.")
+  if (!confirmed) return
+
+  isDeleting.value = true
+  
+  const [data, status] = await deleteUser(authStore.userId, authStore.accessToken)
+  
+  isDeleting.value = false
+  
+  if (status === 200 || status === 204) {
+    authStore.clearTokens()
+    router.push({ name: 'login' })
+  } else {
+    window.alert(data?.message || 'Failed to delete account.')
+  }
+}
 
 const loadUserActivity = async () => {
   const userId = authStore.userId
@@ -242,16 +277,23 @@ const displayedActivity = computed(() => {
               </div>
             </div>
 
-            <div class="py-4 sm:py-5 px-6 flex justify-end items-center space-x-4 bg-gray-50 rounded-b-lg">
-              <span v-if="errorMessage" class="text-red-600 text-sm font-medium mr-auto">{{ errorMessage }}</span>
-              <button type="button" @click="cancelEdit" :disabled="isSaving"
-                class="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 disabled:opacity-50 transition-colors">
-                Cancel
-              </button>
-              <button type="submit" :disabled="isSaving"
-                class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 disabled:opacity-50 transition-colors">
-                {{ isSaving ? 'Saving...' : 'Save Changes' }}
-              </button>
+            <div class="py-4 sm:py-5 px-6 flex justify-between items-center bg-gray-50 rounded-b-lg">
+              <div>
+                <button type="button" @click="handleDelete" :disabled="isDeleting" class="inline-flex justify-center py-2 px-4 border border-red-300 shadow-sm text-sm font-medium rounded-md text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 transition-colors">
+                  {{ isDeleting ? 'Deleting...' : 'Delete Account' }}
+                </button>
+              </div>
+              <div class="flex items-center space-x-4">
+                <span v-if="errorMessage" class="text-red-600 text-sm font-medium">{{ errorMessage }}</span>
+                <button type="button" @click="cancelEdit" :disabled="isSaving"
+                  class="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 disabled:opacity-50 transition-colors">
+                  Cancel
+                </button>
+                <button type="submit" :disabled="isSaving"
+                  class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 disabled:opacity-50 transition-colors">
+                  {{ isSaving ? 'Saving...' : 'Save Changes' }}
+                </button>
+              </div>
             </div>
           </form>
         </div>

@@ -56,3 +56,14 @@ export async function updateUser(id, user, accessToken) {
         return [error.response?.data, error.response?.status]
     }
 }
+
+export async function deleteUser(id, accessToken) {
+    try {
+        const response = await axios.delete(`/api/${id}`, {
+            headers: { Authorization: `Bearer ${accessToken}` }
+        })
+        return [response.data, response.status]
+    } catch (error) {
+        return [error.response?.data, error.response?.status]
+    }
+}
