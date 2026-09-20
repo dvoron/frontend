@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth.js'
-import ForumComment from './ForumComment.vue'
+import ForumComment from '@/components/ForumComment.vue'
 import { getAllPosts, createPost as apiCreatePost, createComment as apiCreateComment } from '@/services/ForumService.js'
 
 const authStore = useAuthStore()
