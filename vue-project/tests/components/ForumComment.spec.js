@@ -80,6 +80,32 @@ describe('ForumComment.vue', () => {
     expect(wrapper.find('.btn-submit').attributes('disabled')).toBeDefined()
   })
 
+  it('does not emit reply if content is empty or whitespace', async () => {
+    const wrapper = mountComponent()
+    await wrapper.find('.action-btn').trigger('click')
+
+    const textarea = wrapper.find('textarea')
+    await textarea.setValue('   ')
+    await wrapper.find('.btn-submit').trigger('click')
+
+    expect(wrapper.emitted('reply')).toBeFalsy()
+  })
+
+  it('does not emit reply if content exceeds 1000 characters', async () => {
+    const wrapper = mountComponent()
+    await wrapper.find('.action-btn').trigger('click')
+
+    const textarea = wrapper.find('textarea')
+    const longText = 'a'.repeat(1001)
+    await textarea.setValue(longText)
+    
+    // Remove disabled attribute to force click for test
+    await wrapper.find('.btn-submit').element.removeAttribute('disabled')
+    await wrapper.find('.btn-submit').trigger('click')
+
+    expect(wrapper.emitted('reply')).toBeFalsy()
+  })
+
   it('emits reply event with correct payload on submit', async () => {
     const wrapper = mountComponent()
     await wrapper.find('.action-btn').trigger('click')
@@ -113,5 +139,33 @@ describe('ForumComment.vue', () => {
     // 1 for the root, 1 for the child
     expect(nestedComments.length).toBe(2)
     expect(wrapper.text()).toContain('Nested reply')
+  })
+
+  it('emits reply event when a child comment emits reply', async () => {
+    const commentWithReplies = {
+      ...defaultComment,
+      replies: [
+        {
+          id: 2,
+          author: 'replyuser',
+          timestamp: '2023-01-02',
+          content: 'Nested reply',
+          replies: []
+        }
+      ]
+    }
+    const wrapper = mountComponent(commentWithReplies)
+    
+    // Find the reply button inside the nested comment
+    const childComment = wrapper.findAll('.comment')[1]
+    await childComment.find('.action-btn').trigger('click')
+    
+    const textarea = childComment.find('textarea')
+    await textarea.setValue('Reply to child')
+    
+    await childComment.find('.btn-submit').trigger('click')
+    
+    expect(wrapper.emitted('reply')).toBeTruthy()
+    expect(wrapper.emitted('reply')[0]).toEqual([2, 'Reply to child'])
   })
 })

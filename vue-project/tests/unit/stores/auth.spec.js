@@ -77,5 +77,17 @@ describe('Auth Store', () => {
       store.accessToken = 'invalid.token.here'
       expect(store.username).toBeNull()
     })
+
+    it('userId returns null if accessToken is null', () => {
+      const store = useAuthStore()
+      store.accessToken = null
+      expect(store.userId).toBeNull()
+    })
+
+    it('username returns null if accessToken is null', () => {
+      const store = useAuthStore()
+      store.accessToken = null
+      expect(store.username).toBeNull()
+    })
   })
 })

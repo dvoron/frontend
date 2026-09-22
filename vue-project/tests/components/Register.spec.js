@@ -80,4 +80,14 @@ describe('Register.vue', () => {
     await new Promise(resolve => setTimeout(resolve, 0))
     expect(wrapper.text()).toContain('Username in use')
   })
+
+  it('handles general error (500)', async () => {
+    register.mockResolvedValueOnce([{}, 500])
+    
+    const wrapper = mountComponent()
+    await wrapper.find('form').trigger('submit.prevent')
+    
+    await new Promise(resolve => setTimeout(resolve, 0))
+    expect(wrapper.text()).toContain('Something went wrong. Please try again.')
+  })
 })

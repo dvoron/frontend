@@ -88,4 +88,14 @@ describe('LogIn.vue', () => {
     await new Promise(resolve => setTimeout(resolve, 0))
     expect(wrapper.text()).toContain('Username or password is incorrect')
   })
+
+  it('handles login error (500)', async () => {
+    login.mockResolvedValueOnce([{}, 500])
+    
+    const wrapper = mountComponent()
+    await wrapper.find('form').trigger('submit.prevent')
+    
+    await new Promise(resolve => setTimeout(resolve, 0))
+    expect(wrapper.text()).toContain('Something went wrong. Please try again.')
+  })
 })
