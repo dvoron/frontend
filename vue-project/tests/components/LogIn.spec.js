@@ -62,6 +62,10 @@ describe('LogIn.vue', () => {
     await checkbox.setValue(true)
     
     expect(passwordInput.attributes('type')).toBe('text')
+    
+    await checkbox.setValue(false)
+    
+    expect(passwordInput.attributes('type')).toBe('password')
   })
 
   it('handles successful login', async () => {
