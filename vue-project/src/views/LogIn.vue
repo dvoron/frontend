@@ -1,11 +1,11 @@
-<script setup>
+<script setup lang="ts">
 import { reactive, ref } from "vue"
-import { loginUserDto } from "@/dto/LoginUserDto.js"
-import { login } from "@/services/UserService.js"
-import { useAuthStore } from "@/stores/auth.js"
+import { createEmptyLoginUserDto, type LoginUserDto } from "@/dto/LoginUserDto";
+import { login } from "@/services/UserService"
+import { useAuthStore } from "@/stores/auth"
 import { useRouter } from "vue-router"
 
-const loginFormDto = reactive(loginUserDto())
+const loginFormDto = reactive<LoginUserDto>(createEmptyLoginUserDto())
 const errorMessage = ref("")
 let passwordVisibilityType = ref("password")
 

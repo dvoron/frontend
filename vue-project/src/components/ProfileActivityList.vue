@@ -1,7 +1,7 @@
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
-import { useAuthStore } from '@/stores/auth.js'
-import { getUserPosts, getUserComments } from '@/services/ForumService.js'
+import { useAuthStore } from '@/stores/auth'
+import { getUserPosts, getUserComments } from '@/services/ForumService'
 
 const authStore = useAuthStore()
 

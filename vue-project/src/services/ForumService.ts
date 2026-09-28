@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-export async function getAllPosts(accessToken) {
+export async function getAllPosts(accessToken: string) {
     try {
         const response = await axios.get('/api/forum/posts', {
             headers: { Authorization: `Bearer ${accessToken}` }
@@ -14,7 +14,7 @@ export async function getAllPosts(accessToken) {
     }
 }
 
-export async function createPost(title, content, accessToken) {
+export async function createPost(title: string, content: string, accessToken: string) {
     try {
         const response = await axios.post('/api/forum/posts', {
             title,
@@ -31,7 +31,7 @@ export async function createPost(title, content, accessToken) {
     }
 }
 
-export async function createComment(postId, parentCommentId, content, accessToken) {
+export async function createComment(postId: number, parentCommentId: number | null, content: string, accessToken: string) {
     try {
         const response = await axios.post('/api/forum/comments', {
             postId,
@@ -49,7 +49,7 @@ export async function createComment(postId, parentCommentId, content, accessToke
     }
 }
 
-export async function getUserPosts(userId, accessToken) {
+export async function getUserPosts(userId: number, accessToken: string) {
     try {
         const response = await axios.get(`/api/forum/users/${userId}/posts`, {
             headers: { Authorization: `Bearer ${accessToken}` }
@@ -63,7 +63,7 @@ export async function getUserPosts(userId, accessToken) {
     }
 }
 
-export async function getUserComments(userId, accessToken) {
+export async function getUserComments(userId: number, accessToken: string) {
     try {
         const response = await axios.get(`/api/forum/users/${userId}/comments`, {
             headers: { Authorization: `Bearer ${accessToken}` }

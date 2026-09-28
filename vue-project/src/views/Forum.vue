@@ -1,8 +1,8 @@
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { useAuthStore } from '@/stores/auth.js'
+import { useAuthStore } from '@/stores/auth'
 import ForumComment from '@/components/ForumComment.vue'
-import { getAllPosts, createPost as apiCreatePost, createComment as apiCreateComment } from '@/services/ForumService.js'
+import { getAllPosts, createPost as apiCreatePost, createComment as apiCreateComment } from '@/services/ForumService'
 
 const authStore = useAuthStore()
 

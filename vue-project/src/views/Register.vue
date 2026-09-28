@@ -1,11 +1,11 @@
-<script setup>
+<script setup lang="ts">
 import { reactive, ref } from "vue"
-import { createUserDto } from "@/dto/CreateUserDto.js"
-import { register } from "@/services/UserService.js"
-import { useAuthStore } from "@/stores/auth.js"
+import { createEmptyCreateUserDto, type CreateUserDto } from "@/dto/CreateUserDto";
+import { register } from "@/services/UserService"
+import { useAuthStore } from "@/stores/auth"
 import { useRouter } from "vue-router"
 
-const registerForm = reactive(createUserDto())
+const registerForm = reactive<CreateUserDto>(createEmptyCreateUserDto())
 const usernameError = ref("")
 const emailError = ref("")
 const generalError = ref("")

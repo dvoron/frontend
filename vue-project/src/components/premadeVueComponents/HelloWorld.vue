@@ -1,6 +1,6 @@
 <script></script>
 <template></template>
-<!--<script setup>-->
+<!--<script setup lang="ts">-->
 <!--defineProps({-->
 <!--  msg: {-->
 <!--    type: String,-->

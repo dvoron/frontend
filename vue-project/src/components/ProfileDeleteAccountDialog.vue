@@ -1,7 +1,7 @@
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue'
-import { useAuthStore } from '@/stores/auth.js'
-import { login, deleteUser } from '@/services/UserService.js'
+import { useAuthStore } from '@/stores/auth'
+import { login, deleteUser } from '@/services/UserService'
 import { useRouter } from 'vue-router'
 
 const props = defineProps({

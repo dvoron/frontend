@@ -1,7 +1,7 @@
-<script setup>
+<script setup lang="ts">
 import { ref, watch } from 'vue'
-import { useAuthStore } from '@/stores/auth.js'
-import { updateUser } from '@/services/UserService.js'
+import { useAuthStore } from '@/stores/auth'
+import { updateUser } from '@/services/UserService'
 import ProfileDeleteAccountDialog from './ProfileDeleteAccountDialog.vue'
 
 const props = defineProps({

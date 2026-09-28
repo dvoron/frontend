@@ -1,7 +1,7 @@
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { useAuthStore } from '@/stores/auth.js'
-import { getUserById } from '@/services/UserService.js'
+import { useAuthStore } from '@/stores/auth'
+import { getUserById } from '@/services/UserService'
 import { useRouter } from 'vue-router'
 import ProfileSettings from '@/components/ProfileSettings.vue'
 import ProfileActivityList from '@/components/ProfileActivityList.vue'

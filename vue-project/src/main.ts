@@ -10,7 +10,7 @@ import {createPinia} from "pinia";
 import LogIn from "@/views/LogIn.vue";
 import Register from "@/views/Register.vue";
 import Profile from "@/views/Profile.vue";
-import {useAuthStore} from "@/stores/auth.js";
+import {useAuthStore} from "@/stores/auth";
 import Forum from "@/views/Forum.vue";
 
 const router = createRouter({
