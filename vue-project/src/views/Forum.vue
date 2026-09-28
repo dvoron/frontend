@@ -181,7 +181,7 @@ const handleReply = async (postId, parentCommentId, content) => {
 
 .header h1 {
   font-size: 1.8rem;
-  color: #fff;
+  color: #000;
   margin: 0;
 }
 
