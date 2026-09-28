@@ -8,7 +8,10 @@ export async function login(dto) {
         })
         return [response.data, response.status]
     } catch (error) {
-        return [error.response.data, error.response.status]
+        if (error.response) {
+            return [error.response.data, error.response.status]
+        }
+        return [{ message: 'Network error occurred' }, 503]
     }
 }
 
@@ -21,7 +24,10 @@ export async function register(dto) {
         })
         return [response.data, response.status]
     } catch (error) {
-        return [error.response.data, error.response.status]
+        if (error.response) {
+            return [error.response.data, error.response.status]
+        }
+        return [{ message: 'Network error occurred' }, 503]
     }
 }
 
@@ -42,7 +48,10 @@ export async function getUserById(id, accessToken) {
         })
         return [response.data, response.status]
     } catch (error) {
-        return [error.response?.data, error.response?.status]
+        if (error.response) {
+            return [error.response.data, error.response.status]
+        }
+        return [{ message: 'Network error occurred' }, 503]
     }
 }
 
@@ -53,7 +62,10 @@ export async function updateUser(id, user, accessToken) {
         })
         return [response.data, response.status]
     } catch (error) {
-        return [error.response?.data, error.response?.status]
+        if (error.response) {
+            return [error.response.data, error.response.status]
+        }
+        return [{ message: 'Network error occurred' }, 503]
     }
 }
 
@@ -64,6 +76,9 @@ export async function deleteUser(id, accessToken) {
         })
         return [response.data, response.status]
     } catch (error) {
-        return [error.response?.data, error.response?.status]
+        if (error.response) {
+            return [error.response.data, error.response.status]
+        }
+        return [{ message: 'Network error occurred' }, 503]
     }
 }
