@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import { jwtDecode } from 'jwt-decode'
 
 export const useAuthStore = defineStore('auth', {
     state: () => ({
@@ -11,12 +12,7 @@ export const useAuthStore = defineStore('auth', {
         userId: (state) => {
             if (!state.accessToken) return null;
             try {
-                const base64Url = state.accessToken.split('.')[1];
-                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-                const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
-                    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-                }).join(''));
-                return JSON.parse(jsonPayload).sub;
+                return jwtDecode(state.accessToken).sub;
             } catch (e) {
                 return null;
             }
@@ -24,12 +20,7 @@ export const useAuthStore = defineStore('auth', {
         username: (state) => {
             if (!state.accessToken) return null;
             try {
-                const base64Url = state.accessToken.split('.')[1];
-                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-                const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
-                    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-                }).join(''));
-                return JSON.parse(jsonPayload).username;
+                return jwtDecode(state.accessToken).username;
             } catch (e) {
                 return null;
             }
