@@ -21,7 +21,7 @@ async function submit() {
   const [data, status] = await register(registerForm)
 
   if (status === 200) {
-    authStore.setTokens(data.accessToken, data.refreshToken)
+    authStore.setTokens(data.accessToken)
     router.push({ name: "home" })
   } else if (status === 409) {
     if (data.code === "EMAIL_ALREADY_TAKEN") {

@@ -48,7 +48,6 @@ describe('Register.vue Integration', () => {
     
     const store = useAuthStore()
     expect(store.accessToken).toBe('real-access')
-    expect(store.refreshToken).toBe('real-refresh')
     
     expect(mockPush).toHaveBeenCalledWith({ name: 'home' })
   })

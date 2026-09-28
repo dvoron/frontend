@@ -11,37 +11,23 @@ describe('Auth Store', () => {
   it('initializes with null tokens if localStorage is empty', () => {
     const store = useAuthStore()
     expect(store.accessToken).toBeNull()
-    expect(store.refreshToken).toBeNull()
     expect(store.isLoggedIn).toBe(false)
   })
 
-  it('initializes with tokens from localStorage', () => {
-    localStorage.setItem('accessToken', 'token123')
-    localStorage.setItem('refreshToken', 'refresh123')
+  it('setTokens sets token in state', () => {
     const store = useAuthStore()
+    store.setTokens('token123')
     expect(store.accessToken).toBe('token123')
-    expect(store.refreshToken).toBe('refresh123')
+    expect(localStorage.getItem('accessToken')).toBeNull()
     expect(store.isLoggedIn).toBe(true)
   })
 
-  it('setTokens sets tokens in state and localStorage', () => {
+  it('clearTokens removes tokens from state', () => {
     const store = useAuthStore()
-    store.setTokens('token123', 'refresh123')
-    expect(store.accessToken).toBe('token123')
-    expect(store.refreshToken).toBe('refresh123')
-    expect(localStorage.getItem('accessToken')).toBe('token123')
-    expect(localStorage.getItem('refreshToken')).toBe('refresh123')
-    expect(store.isLoggedIn).toBe(true)
-  })
-
-  it('clearTokens removes tokens from state and localStorage', () => {
-    const store = useAuthStore()
-    store.setTokens('token123', 'refresh123')
+    store.setTokens('token123')
     store.clearTokens()
     expect(store.accessToken).toBeNull()
-    expect(store.refreshToken).toBeNull()
     expect(localStorage.getItem('accessToken')).toBeNull()
-    expect(localStorage.getItem('refreshToken')).toBeNull()
     expect(store.isLoggedIn).toBe(false)
   })
 

@@ -3,8 +3,7 @@ import { jwtDecode } from 'jwt-decode'
 
 export const useAuthStore = defineStore('auth', {
     state: () => ({
-        accessToken: localStorage.getItem('accessToken') || null,
-        refreshToken: localStorage.getItem('refreshToken') || null,
+        accessToken: null,
     }),
 
     getters: {
@@ -28,17 +27,20 @@ export const useAuthStore = defineStore('auth', {
     },
 
     actions: {
-        setTokens(accessToken, refreshToken) {
+        setTokens(accessToken) {
             this.accessToken = accessToken
-            this.refreshToken = refreshToken
-            localStorage.setItem('accessToken', accessToken)
-            localStorage.setItem('refreshToken', refreshToken)
         },
         clearTokens() {
             this.accessToken = null
-            this.refreshToken = null
-            localStorage.removeItem('accessToken')
-            localStorage.removeItem('refreshToken')
         },
+        async tryRefresh() {
+            const { refresh } = await import('@/services/UserService.js');
+            const [data, status] = await refresh();
+            if (status === 200 && data.accessToken) {
+                this.setTokens(data.accessToken);
+                return true;
+            }
+            return false;
+        }
     },
 })

@@ -39,9 +39,14 @@ const router = createRouter({
 
 const app = createApp(App)
 const pinia = createPinia()
-app.use(router)
 app.use(pinia)
+
+const auth = useAuthStore()
+await auth.tryRefresh()
+
+app.use(router)
 app.mount('#app')
+
 router.beforeEach((to) => {
     const auth = useAuthStore()
 

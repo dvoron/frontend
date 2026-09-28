@@ -15,6 +15,18 @@ export async function login(dto) {
     }
 }
 
+export async function refresh() {
+    try {
+        const response = await axios.post('/api/auth/refresh', {})
+        return [response.data, response.status]
+    } catch (error) {
+        if (error.response) {
+            return [error.response.data, error.response.status]
+        }
+        return [{ message: 'Network error occurred' }, 503]
+    }
+}
+
 export async function register(dto) {
     try {
         const response = await axios.post('/api/auth/register', {

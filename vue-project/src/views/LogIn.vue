@@ -17,7 +17,7 @@ async function onSignIn() {
   const [data, status] = await login(loginFormDto)
 
   if (status === 200) {
-    authStore.setTokens(data.accessToken, data.refreshToken)
+    authStore.setTokens(data.accessToken)
     router.push({ name: "home" })
   } else if (status === 401) {
     errorMessage.value = "Username or password is incorrect"
