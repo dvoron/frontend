@@ -2,9 +2,8 @@ import { describe, it, expect, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createTestingPinia } from '@pinia/testing'
 import { useAuthStore } from '@/stores/auth'
-import ProfileSettings from "../../src/components/ProfileSettings.vue";
-// import ProfileSettings from '@/components/ProfileSettings.vue'
-// import ProfileDeleteAccountDialog from '@/components/ProfileDeleteAccountDialog.vue'
+import ProfileSettings from "@/components/ProfileSettings.vue";
+import ProfileDeleteAccountDialog from "@/components/ProfileDeleteAccountDialog.vue";
 
 vi.mock('@/services/UserService', () => ({
   updateUser: vi.fn()
@@ -16,7 +15,7 @@ describe('ProfileSettings.vue', () => {
     email: 'test@example.com'
   }
 
-  const mountComponent = (props = {}) => {
+  const mountComponent = (props: Record<string, any> = {}) => {
     return mount(ProfileSettings, {
       props: {
         initialUser: defaultUser,
@@ -27,7 +26,8 @@ describe('ProfileSettings.vue', () => {
         plugins: [createTestingPinia({ createSpy: vi.fn, initialState: { auth: { accessToken: 'mock-token' } } })],
         stubs: {
           ProfileDeleteAccountDialog: {
-            template: '<div />',
+            template: '<div>{{ errorMessage }}</div>',
+            props: ['errorMessage'],
             methods: {
               cancelDelete: vi.fn()
             }
@@ -56,7 +56,7 @@ describe('ProfileSettings.vue', () => {
     
     expect(wrapper.find('form').exists()).toBe(true)
     expect(wrapper.emitted('editingChange')).toBeTruthy()
-    expect(wrapper.emitted('editingChange')[0]).toEqual([true])
+    expect(wrapper.emitted('editingChange')![0]).toEqual([true])
   })
 
   it('cancels edit mode and resets values', async () => {
@@ -74,12 +74,12 @@ describe('ProfileSettings.vue', () => {
     // We mocked the dialog, so we need to mock the cancelEdit method on the ref if it's called
     // But since it's a stub, the ref might not have cancelDelete. We can mock it or just test the emit.
     // Let's just check if cancelEdit method works.
-    wrapper.vm.cancelEdit()
+    wrapper.findComponent(ProfileDeleteAccountDialog).vm.$emit('cancelEdit')
     await wrapper.vm.$nextTick()
     
-    expect(wrapper.emitted('editingChange')[1]).toEqual([false])
-    expect(wrapper.vm.user.username).toBe('testuser')
-    expect(wrapper.vm.user.email).toBe('test@example.com')
+    expect(wrapper.emitted('editingChange')![1]).toEqual([false])
+    expect(wrapper.text()).toContain('testuser')
+    expect(wrapper.text()).toContain('test@example.com')
   })
 
   it('saves profile successfully without changing password', async () => {
@@ -101,9 +101,9 @@ describe('ProfileSettings.vue', () => {
     
     expect(updateUser).toHaveBeenCalledWith(1, { username: 'updateduser', email: 'updateemail' }, expect.any(String))
     await new Promise(resolve => setTimeout(resolve, 0))
-    expect(wrapper.vm.successMessage).toBe('Profile updated successfully!')
+    expect(wrapper.text()).toContain('Profile updated successfully!')
     expect(wrapper.emitted('profileUpdated')).toBeTruthy()
-    expect(wrapper.emitted('profileUpdated')[0]).toEqual([{ username: 'updateduser', email: 'updateemail' }])
+    expect(wrapper.emitted('profileUpdated')![0]).toEqual([{ username: 'updateduser', email: 'updateemail' }])
   })
 
   it('shows error if new password is provided without old password', async () => {
@@ -118,7 +118,7 @@ describe('ProfileSettings.vue', () => {
     
     await wrapper.find('form').trigger('submit.prevent')
     
-    expect(wrapper.vm.errorMessage).toBe('Please enter your old password to set a new one.')
+    expect(wrapper.text()).toContain('Please enter your old password to set a new one.')
   })
 
   it('saves profile successfully with password change', async () => {
@@ -147,7 +147,7 @@ describe('ProfileSettings.vue', () => {
     }, expect.any(String))
     
     await new Promise(resolve => setTimeout(resolve, 0))
-    expect(wrapper.vm.successMessage).toBe('Profile updated successfully!')
+    expect(wrapper.text()).toContain('Profile updated successfully!')
   })
 
   it('shows error if profile update fails', async () => {
@@ -163,7 +163,7 @@ describe('ProfileSettings.vue', () => {
     await wrapper.find('form').trigger('submit.prevent')
     
     await new Promise(resolve => setTimeout(resolve, 0))
-    expect(wrapper.vm.errorMessage).toBe('Update failed')
+    expect(wrapper.text()).toContain('Update failed')
   })
 
   it('shows error if profile update fails without errorMessage', async () => {
@@ -179,7 +179,7 @@ describe('ProfileSettings.vue', () => {
     await wrapper.find('form').trigger('submit.prevent')
 
     await new Promise(resolve => setTimeout(resolve, 0))
-    expect(wrapper.vm.errorMessage).toBe('Failed to update profile.')
+    expect(wrapper.text()).toContain('Failed to update profile.')
 
   })
 })

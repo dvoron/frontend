@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createTestingPinia } from '@pinia/testing'
-import ForumComment from "../../src/components/ForumComment.vue";
+import ForumComment from "@/components/ForumComment.vue";
 // import ForumComment from '@/components/ForumComment.vue'
 // import { useAuthStore } from '@/stores/auth'
 
@@ -14,7 +14,7 @@ describe('ForumComment.vue', () => {
     replies: []
   }
 
-  const mountComponent = (comment = defaultComment, isLoggedIn = true) => {
+  const mountComponent = (comment: any = defaultComment, isLoggedIn = true) => {
     return mount(ForumComment, {
       props: { comment },
       global: {
@@ -117,7 +117,7 @@ describe('ForumComment.vue', () => {
     await wrapper.find('.btn-submit').trigger('click')
 
     expect(wrapper.emitted('reply')).toBeTruthy()
-    expect(wrapper.emitted('reply')[0]).toEqual([1, 'My reply'])
+    expect(wrapper.emitted('reply')![0]).toEqual([1, 'My reply'])
     expect(wrapper.find('.reply-input').exists()).toBe(false)
   })
 
@@ -167,6 +167,6 @@ describe('ForumComment.vue', () => {
     await childComment.find('.btn-submit').trigger('click')
     
     expect(wrapper.emitted('reply')).toBeTruthy()
-    expect(wrapper.emitted('reply')[0]).toEqual([2, 'Reply to child'])
+    expect(wrapper.emitted('reply')![0]).toEqual([2, 'Reply to child'])
   })
 })

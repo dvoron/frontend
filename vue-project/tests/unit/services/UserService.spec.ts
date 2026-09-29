@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import axios from 'axios'
-import { login, register, logout, getUserById, updateUser, deleteUser } from '../../../src/services/UserService'
+import { login, register, logout, getUserById, updateUser, deleteUser } from '@/services/UserService'
 
 vi.mock('axios')
-axios.isAxiosError = vi.fn((err) => !!err?.isAxiosError)
+axios.isAxiosError = vi.fn((err: any) => !!err?.isAxiosError) as any
 
 describe('UserService', () => {
   beforeEach(() => {
@@ -13,7 +13,7 @@ describe('UserService', () => {
   describe('login', () => {
     it('should login successfully', async () => {
       const mockData = { token: '123' }
-      vi.mocked(axios.post).mockResolvedValueOnce({ data: mockData, status: 200 })
+      vi.mocked(axios.post).mockResolvedValueOnce({ data: mockData, status: 200 } as any)
 
       const [data, status] = await login({ login: 'user', password: 'password' })
 
@@ -27,7 +27,7 @@ describe('UserService', () => {
 
     it('should handle login error', async () => {
       const mockError = { isAxiosError: true, response: { data: { message: 'Error' }, status: 401 } }
-      vi.mocked(axios.post).mockRejectedValueOnce(mockError)
+      vi.mocked(axios.post).mockRejectedValueOnce(mockError as any)
 
       const [data, status] = await login({ login: 'user', password: 'password' })
 
@@ -39,7 +39,7 @@ describe('UserService', () => {
   describe('register', () => {
     it('should register successfully', async () => {
       const mockData = { id: 1 }
-      vi.mocked(axios.post).mockResolvedValueOnce({ data: mockData, status: 201 })
+      vi.mocked(axios.post).mockResolvedValueOnce({ data: mockData, status: 201 } as any)
 
       const [data, status] = await register({ username: 'user', email: 'e@e.com', password: 'password' })
 
@@ -54,7 +54,7 @@ describe('UserService', () => {
 
     it('should handle register error', async () => {
       const mockError = { isAxiosError: true, response: { data: { message: 'Error' }, status: 400 } }
-      vi.mocked(axios.post).mockRejectedValueOnce(mockError)
+      vi.mocked(axios.post).mockRejectedValueOnce(mockError as any)
 
       const [data, status] = await register({ username: 'user', email: 'e@e.com', password: 'password' })
 
@@ -65,7 +65,7 @@ describe('UserService', () => {
 
   describe('logout', () => {
     it('should logout successfully', async () => {
-      vi.mocked(axios.post).mockResolvedValueOnce({})
+      vi.mocked(axios.post).mockResolvedValueOnce({} as any)
 
       await logout('token123')
 
@@ -84,7 +84,7 @@ describe('UserService', () => {
   describe('getUserById', () => {
     it('should get user successfully', async () => {
       const mockData = { id: 1, name: 'user' }
-      vi.mocked(axios.get).mockResolvedValueOnce({ data: mockData, status: 200 })
+      vi.mocked(axios.get).mockResolvedValueOnce({ data: mockData, status: 200 } as any)
 
       const [data, status] = await getUserById(1, 'token123')
 
@@ -97,7 +97,7 @@ describe('UserService', () => {
 
     it('should handle get user error', async () => {
       const mockError = { isAxiosError: true, response: { data: { message: 'Not found' }, status: 404 } }
-      vi.mocked(axios.get).mockRejectedValueOnce(mockError)
+      vi.mocked(axios.get).mockRejectedValueOnce(mockError as any)
 
       const [data, status] = await getUserById(1, 'token123')
 
@@ -109,7 +109,7 @@ describe('UserService', () => {
   describe('updateUser', () => {
     it('should update user successfully', async () => {
       const mockData = { id: 1, name: 'updated' }
-      vi.mocked(axios.put).mockResolvedValueOnce({ data: mockData, status: 200 })
+      vi.mocked(axios.put).mockResolvedValueOnce({ data: mockData, status: 200 } as any)
 
       const [data, status] = await updateUser(1, { name: 'updated' }, 'token123')
 
@@ -122,7 +122,7 @@ describe('UserService', () => {
 
     it('should handle update user error', async () => {
       const mockError = { isAxiosError: true, response: { data: { message: 'Error' }, status: 400 } }
-      vi.mocked(axios.put).mockRejectedValueOnce(mockError)
+      vi.mocked(axios.put).mockRejectedValueOnce(mockError as any)
 
       const [data, status] = await updateUser(1, { name: 'updated' }, 'token123')
 
@@ -133,7 +133,7 @@ describe('UserService', () => {
 
   describe('deleteUser', () => {
     it('should delete user successfully', async () => {
-      vi.mocked(axios.delete).mockResolvedValueOnce({ data: null, status: 204 })
+      vi.mocked(axios.delete).mockResolvedValueOnce({ data: null, status: 204 } as any)
 
       const [data, status] = await deleteUser(1, 'token123')
 
@@ -146,7 +146,7 @@ describe('UserService', () => {
 
     it('should handle delete user error', async () => {
       const mockError = { isAxiosError: true, response: { data: { message: 'Error' }, status: 403 } }
-      vi.mocked(axios.delete).mockRejectedValueOnce(mockError)
+      vi.mocked(axios.delete).mockRejectedValueOnce(mockError as any)
 
       const [data, status] = await deleteUser(1, 'token123')
 

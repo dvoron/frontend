@@ -5,8 +5,8 @@ import { createPinia, setActivePinia } from 'pinia'
 import { useRouter } from 'vue-router'
 import { server } from '../mocks/server'
 import { http, HttpResponse } from 'msw'
-import Register from "../../src/views/Register.vue";
-import {useAuthStore} from "../../src/stores/auth";
+import Register from "@/views/Register.vue";
+import {useAuthStore} from "@/stores/auth";
 // import { useAuthStore } from '@/stores/auth'
 
 vi.mock('vue-router', () => ({

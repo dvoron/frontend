@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import axios from 'axios'
-import { getAllPosts, createPost, createComment, getUserPosts, getUserComments } from '../../../src/services/ForumService'
+import { getAllPosts, createPost, createComment, getUserPosts, getUserComments } from '@/services/ForumService'
 
 vi.mock('axios')
-axios.isAxiosError = vi.fn((err) => !!err?.isAxiosError)
+axios.isAxiosError = vi.fn((err: any) => !!err?.isAxiosError) as any
 
 describe('ForumService', () => {
   beforeEach(() => {
@@ -13,7 +13,7 @@ describe('ForumService', () => {
   describe('getAllPosts', () => {
     it('should get all posts successfully', async () => {
       const mockData = [{ id: 1, title: 'Post 1' }]
-      vi.mocked(axios.get).mockResolvedValueOnce({ data: mockData, status: 200 })
+      vi.mocked(axios.get).mockResolvedValueOnce({ data: mockData, status: 200 } as any)
 
       const [data, status] = await getAllPosts('token123')
 
@@ -26,7 +26,7 @@ describe('ForumService', () => {
 
     it('should handle get all posts error', async () => {
       const mockError = { isAxiosError: true, response: { data: { message: 'Error' }, status: 500 } }
-      vi.mocked(axios.get).mockRejectedValueOnce(mockError)
+      vi.mocked(axios.get).mockRejectedValueOnce(mockError as any)
 
       const [data, status] = await getAllPosts('token123')
 
@@ -38,7 +38,7 @@ describe('ForumService', () => {
   describe('createPost', () => {
     it('should create post successfully', async () => {
       const mockData = { id: 1, title: 'New Post' }
-      vi.mocked(axios.post).mockResolvedValueOnce({ data: mockData, status: 201 })
+      vi.mocked(axios.post).mockResolvedValueOnce({ data: mockData, status: 201 } as any)
 
       const [data, status] = await createPost('New Post', 'Content', 'token123')
 
@@ -54,7 +54,7 @@ describe('ForumService', () => {
 
     it('should handle create post error', async () => {
       const mockError = { isAxiosError: true, response: { data: { message: 'Error' }, status: 400 } }
-      vi.mocked(axios.post).mockRejectedValueOnce(mockError)
+      vi.mocked(axios.post).mockRejectedValueOnce(mockError as any)
 
       const [data, status] = await createPost('New Post', 'Content', 'token123')
 
@@ -66,7 +66,7 @@ describe('ForumService', () => {
   describe('createComment', () => {
     it('should create comment successfully', async () => {
       const mockData = { id: 1, content: 'Comment' }
-      vi.mocked(axios.post).mockResolvedValueOnce({ data: mockData, status: 201 })
+      vi.mocked(axios.post).mockResolvedValueOnce({ data: mockData, status: 201 } as any)
 
       const [data, status] = await createComment(1, null, 'Comment', 'token123')
 
@@ -83,7 +83,7 @@ describe('ForumService', () => {
 
     it('should handle create comment error', async () => {
       const mockError = { isAxiosError: true, response: { data: { message: 'Error' }, status: 400 } }
-      vi.mocked(axios.post).mockRejectedValueOnce(mockError)
+      vi.mocked(axios.post).mockRejectedValueOnce(mockError as any)
 
       const [data, status] = await createComment(1, null, 'Comment', 'token123')
 
@@ -95,7 +95,7 @@ describe('ForumService', () => {
   describe('getUserPosts', () => {
     it('should get user posts successfully', async () => {
       const mockData = [{ id: 1, title: 'Post 1' }]
-      vi.mocked(axios.get).mockResolvedValueOnce({ data: mockData, status: 200 })
+      vi.mocked(axios.get).mockResolvedValueOnce({ data: mockData, status: 200 } as any)
 
       const [data, status] = await getUserPosts(1, 'token123')
 
@@ -108,7 +108,7 @@ describe('ForumService', () => {
 
     it('should handle get user posts error', async () => {
       const mockError = { isAxiosError: true, response: { data: { message: 'Error' }, status: 500 } }
-      vi.mocked(axios.get).mockRejectedValueOnce(mockError)
+      vi.mocked(axios.get).mockRejectedValueOnce(mockError as any)
 
       const [data, status] = await getUserPosts(1, 'token123')
 
@@ -120,7 +120,7 @@ describe('ForumService', () => {
   describe('getUserComments', () => {
     it('should get user comments successfully', async () => {
       const mockData = [{ id: 1, content: 'Comment 1' }]
-      vi.mocked(axios.get).mockResolvedValueOnce({ data: mockData, status: 200 })
+      vi.mocked(axios.get).mockResolvedValueOnce({ data: mockData, status: 200 } as any)
 
       const [data, status] = await getUserComments(1, 'token123')
 
@@ -133,7 +133,7 @@ describe('ForumService', () => {
 
     it('should handle get user comments error', async () => {
       const mockError = { isAxiosError: true, response: { data: { message: 'Error' }, status: 500 } }
-      vi.mocked(axios.get).mockRejectedValueOnce(mockError)
+      vi.mocked(axios.get).mockRejectedValueOnce(mockError as any)
 
       const [data, status] = await getUserComments(1, 'token123')
 

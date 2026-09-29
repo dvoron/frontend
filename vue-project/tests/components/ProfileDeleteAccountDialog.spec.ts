@@ -2,8 +2,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createTestingPinia } from '@pinia/testing'
 // import { useAuthStore } from '@/stores/auth'
-import ProfileDeleteAccountDialog from "../../src/components/ProfileDeleteAccountDialog.vue";
-import {useAuthStore} from "../../src/stores/auth";
+import ProfileDeleteAccountDialog from "@/components/ProfileDeleteAccountDialog.vue";
+import {useAuthStore} from "@/stores/auth";
 
 vi.mock('@/services/UserService', () => ({
   login: vi.fn(),
@@ -15,7 +15,7 @@ vi.mock('vue-router', () => ({
 }))
 
 describe('ProfileDeleteAccountDialog.vue', () => {
-  const mountComponent = (props = {}) => {
+  const mountComponent = (props: Record<string, any> = {}) => {
     return mount(ProfileDeleteAccountDialog, {
       props: {
         email: 'test@example.com',
@@ -46,7 +46,6 @@ describe('ProfileDeleteAccountDialog.vue', () => {
     const deleteBtn = wrapper.find('button.text-red-700') // Delete Account button
     await deleteBtn.trigger('click')
     
-    expect(wrapper.vm.deleteState).toBe('password')
     expect(wrapper.text()).toContain('Enter password to confirm deletion')
   })
 
@@ -55,13 +54,14 @@ describe('ProfileDeleteAccountDialog.vue', () => {
     const store = useAuthStore()
     store.setTokens('mock-token')
     store.accessToken = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' })) + '.' + btoa(JSON.stringify({ sub: 1, username: 'testuser' })) + '.signature'
-    wrapper.vm.startDelete()
-    await wrapper.vm.$nextTick()
+    const deleteBtn = wrapper.find('button.text-red-700')
+    await deleteBtn.trigger('click')
     
     const cancelBtn = wrapper.findAll('button').find(b => b.text() === 'Cancel')
-    await cancelBtn.trigger('click')
+    if (cancelBtn) await cancelBtn.trigger('click')
     
-    expect(wrapper.vm.deleteState).toBe('idle')
+    expect(wrapper.text()).not.toContain('Enter password to confirm deletion')
+    expect(wrapper.text()).toContain('Delete Account')
   })
 
   it('emits cancelEdit when cancel button in standard footer is clicked', async () => {
@@ -70,7 +70,7 @@ describe('ProfileDeleteAccountDialog.vue', () => {
     store.setTokens('mock-token')
     store.accessToken = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' })) + '.' + btoa(JSON.stringify({ sub: 1, username: 'testuser' })) + '.signature'
     const cancelBtn = wrapper.findAll('button').find(b => b.text() === 'Cancel')
-    await cancelBtn.trigger('click')
+    if (cancelBtn) await cancelBtn.trigger('click')
     
     expect(wrapper.emitted('cancelEdit')).toBeTruthy()
   })
@@ -83,18 +83,18 @@ describe('ProfileDeleteAccountDialog.vue', () => {
     const store = useAuthStore()
     store.setTokens('mock-token')
     store.accessToken = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' })) + '.' + btoa(JSON.stringify({ sub: 1, username: 'testuser' })) + '.signature'
-    wrapper.vm.startDelete()
-    await wrapper.vm.$nextTick()
+    const deleteBtn = wrapper.find('button.text-red-700')
+    await deleteBtn.trigger('click')
     
     const passwordInput = wrapper.find('input[type="password"]')
     await passwordInput.setValue('mypassword')
     
     const verifyBtn = wrapper.findAll('button').find(b => b.text() === 'Verify')
-    await verifyBtn.trigger('click')
+    if (verifyBtn) await verifyBtn.trigger('click')
     
     expect(login).toHaveBeenCalledWith({ login: 'test@example.com', password: 'mypassword' })
     await new Promise(resolve => setTimeout(resolve, 0))
-    expect(wrapper.vm.deleteState).toBe('confirm')
+    expect(wrapper.text()).toContain('Are you absolutely sure?')
   })
 
   it('shows error if password verification fails', async () => {
@@ -105,18 +105,18 @@ describe('ProfileDeleteAccountDialog.vue', () => {
     const store = useAuthStore()
     store.setTokens('mock-token')
     store.accessToken = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' })) + '.' + btoa(JSON.stringify({ sub: 1, username: 'testuser' })) + '.signature'
-    wrapper.vm.startDelete()
-    await wrapper.vm.$nextTick()
+    const deleteBtn = wrapper.find('button.text-red-700')
+    await deleteBtn.trigger('click')
     
     const passwordInput = wrapper.find('input[type="password"]')
     await passwordInput.setValue('wrongpassword')
     
     const verifyBtn = wrapper.findAll('button').find(b => b.text() === 'Verify')
-    await verifyBtn.trigger('click')
+    if (verifyBtn) await verifyBtn.trigger('click')
     
     await new Promise(resolve => setTimeout(resolve, 0))
-    expect(wrapper.vm.deleteError).toBe('Incorrect password.')
-    expect(wrapper.vm.deleteState).toBe('password')
+    expect(wrapper.text()).toContain('Incorrect password.')
+    expect(wrapper.text()).toContain('Enter password to confirm deletion')
   })
 
   it('shows error if password is empty on verify', async () => {
@@ -124,17 +124,18 @@ describe('ProfileDeleteAccountDialog.vue', () => {
     const store = useAuthStore()
     store.setTokens('mock-token')
     store.accessToken = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' })) + '.' + btoa(JSON.stringify({ sub: 1, username: 'testuser' })) + '.signature'
-    wrapper.vm.startDelete()
-    await wrapper.vm.$nextTick()
+    const deleteBtn = wrapper.find('button.text-red-700')
+    await deleteBtn.trigger('click')
     
     const verifyBtn = wrapper.findAll('button').find(b => b.text() === 'Verify')
-    await verifyBtn.trigger('click')
+    if (verifyBtn) await verifyBtn.trigger('click')
     
-    expect(wrapper.vm.deleteError).toBe('Password is required to delete your account.')
+    expect(wrapper.text()).toContain('Password is required to delete your account.')
   })
 
   it('deletes account successfully and redirects to login', async () => {
-    const { deleteUser } = await import('@/services/UserService')
+    const { deleteUser, login } = await import('@/services/UserService')
+    vi.mocked(login).mockResolvedValueOnce([{}, 200])
     vi.mocked(deleteUser).mockResolvedValueOnce([{}, 200])
     
     const { useRouter } = await import('vue-router')
@@ -145,11 +146,16 @@ describe('ProfileDeleteAccountDialog.vue', () => {
     const store = useAuthStore()
     store.setTokens('mock-token')
     store.accessToken = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' })) + '.' + btoa(JSON.stringify({ sub: 1, username: 'testuser' })) + '.signature'
-    wrapper.vm.deleteState = 'confirm'
-    await wrapper.vm.$nextTick()
+    const startDeleteBtn = wrapper.find('button.text-red-700')
+    await startDeleteBtn.trigger('click')
+    const passwordInput = wrapper.find('input[type="password"]')
+    await passwordInput.setValue('mypassword')
+    const verifyBtn = wrapper.findAll('button').find(b => b.text() === 'Verify')
+    if (verifyBtn) await verifyBtn.trigger('click')
+    await new Promise(resolve => setTimeout(resolve, 0))
     
     const deleteBtn = wrapper.findAll('button').find(b => b.text() === 'Yes, Delete')
-    await deleteBtn.trigger('click')
+    if (deleteBtn) await deleteBtn.trigger('click')
     
     expect(deleteUser).toHaveBeenCalled()
     await new Promise(resolve => setTimeout(resolve, 0))
@@ -157,38 +163,50 @@ describe('ProfileDeleteAccountDialog.vue', () => {
   })
 
   it('shows error if account deletion fails', async () => {
-    const { deleteUser } = await import('@/services/UserService')
+    const { deleteUser, login } = await import('@/services/UserService')
+    vi.mocked(login).mockResolvedValueOnce([{}, 200])
     vi.mocked(deleteUser).mockResolvedValueOnce([{ message: 'Delete failed' }, 500])
     
     const wrapper = mountComponent()
     const store = useAuthStore()
     store.setTokens('mock-token')
     store.accessToken = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' })) + '.' + btoa(JSON.stringify({ sub: 1, username: 'testuser' })) + '.signature'
-    wrapper.vm.deleteState = 'confirm'
-    await wrapper.vm.$nextTick()
+    const startDeleteBtn = wrapper.find('button.text-red-700')
+    await startDeleteBtn.trigger('click')
+    const passwordInput = wrapper.find('input[type="password"]')
+    await passwordInput.setValue('mypassword')
+    const verifyBtn = wrapper.findAll('button').find(b => b.text() === 'Verify')
+    if (verifyBtn) await verifyBtn.trigger('click')
+    await new Promise(resolve => setTimeout(resolve, 0))
     
     const deleteBtn = wrapper.findAll('button').find(b => b.text() === 'Yes, Delete')
-    await deleteBtn.trigger('click')
+    if (deleteBtn) await deleteBtn.trigger('click')
     
     await new Promise(resolve => setTimeout(resolve, 0))
-    expect(wrapper.vm.deleteError).toBe('Delete failed')
+    expect(wrapper.text()).toContain('Delete failed')
   })
 
   it('shows error if account deletion fails with no message', async () => {
-    const { deleteUser } = await import('@/services/UserService')
+    const { deleteUser, login } = await import('@/services/UserService')
+    vi.mocked(login).mockResolvedValueOnce([{}, 200])
     vi.mocked(deleteUser).mockResolvedValueOnce([null, 500])
     
     const wrapper = mountComponent()
     const store = useAuthStore()
     store.setTokens('mock-token')
     store.accessToken = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' })) + '.' + btoa(JSON.stringify({ sub: 1, username: 'testuser' })) + '.signature'
-    wrapper.vm.deleteState = 'confirm'
-    await wrapper.vm.$nextTick()
+    const startDeleteBtn = wrapper.find('button.text-red-700')
+    await startDeleteBtn.trigger('click')
+    const passwordInput = wrapper.find('input[type="password"]')
+    await passwordInput.setValue('mypassword')
+    const verifyBtn = wrapper.findAll('button').find(b => b.text() === 'Verify')
+    if (verifyBtn) await verifyBtn.trigger('click')
+    await new Promise(resolve => setTimeout(resolve, 0))
     
     const deleteBtn = wrapper.findAll('button').find(b => b.text() === 'Yes, Delete')
-    await deleteBtn.trigger('click')
+    if (deleteBtn) await deleteBtn.trigger('click')
     
     await new Promise(resolve => setTimeout(resolve, 0))
-    expect(wrapper.vm.deleteError).toBe('Failed to delete account.')
+    expect(wrapper.text()).toContain('Failed to delete account.')
   })
 })

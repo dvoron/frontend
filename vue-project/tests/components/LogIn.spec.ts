@@ -2,8 +2,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createTestingPinia } from '@pinia/testing'
 import { useRouter } from 'vue-router'
-import LogIn from "../../src/views/LogIn.vue";
-import {login} from "../../src/services/UserService";
+import LogIn from "@/views/LogIn.vue";
+import {login} from "@/services/UserService";
 
 vi.mock('@/services/UserService', () => ({
   login: vi.fn()
@@ -48,8 +48,8 @@ describe('LogIn.vue', () => {
     const passwordInput = wrapper.find('input[placeholder="Enter password"]')
     await passwordInput.setValue('password123')
     
-    expect(wrapper.vm.loginFormDto.login).toBe('testuser')
-    expect(wrapper.vm.loginFormDto.password).toBe('password123')
+    expect((loginInput.element as HTMLInputElement).value).toBe('testuser')
+    expect((passwordInput.element as HTMLInputElement).value).toBe('password123')
   })
 
   it('toggles password visibility', async () => {

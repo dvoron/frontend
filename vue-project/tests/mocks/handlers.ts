@@ -17,11 +17,11 @@ export const handlers = [
     return HttpResponse.json([])
   }),
   http.post('/api/forum/posts', async ({ request }) => {
-    const data = await request.json()
+    const data = (await request.json()) as Record<string, any>
     return HttpResponse.json({ id: Date.now(), author: 'mockuser', timestamp: 'Just now', comments: [], ...data })
   }),
   http.post('/api/forum/comments', async ({ request }) => {
-    const data = await request.json()
+    const data = (await request.json()) as Record<string, any>
     return HttpResponse.json({ id: Date.now(), ...data })
   }),
   http.get('/api/forum/users/:userId/posts', () => {
@@ -37,7 +37,7 @@ export const handlers = [
     return HttpResponse.json({ id: params.id, username: 'mockuser', email: 'mock@example.com' })
   }),
   http.put('/api/:id', async ({ request, params }) => {
-    const data = await request.json()
+    const data = (await request.json()) as Record<string, any>
     return HttpResponse.json({ id: params.id, ...data })
   }),
   http.delete('/api/:id', () => {

@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
-import {useAuthStore} from "../../../src/stores/auth";
+import {useAuthStore} from "@/stores/auth";
 // import { useAuthStore } from '@/stores/auth'
 
 describe('Auth Store', () => {
@@ -34,7 +34,7 @@ describe('Auth Store', () => {
 
   describe('getters with JWT', () => {
     // Helper to create a fake JWT token
-    const createToken = (payload) => {
+    const createToken = (payload: any) => {
       const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }))
       const body = btoa(JSON.stringify(payload))
       const signature = 'signature'

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import {createEmptyCreateUserDto} from "../../../src/dto/CreateUserDto";
+import {createEmptyCreateUserDto} from "@/dto/CreateUserDto";
 // import { createEmptyCreateUserDto } from '@/dto/CreateUserDto'
 
 describe('CreateUserDto', () => {

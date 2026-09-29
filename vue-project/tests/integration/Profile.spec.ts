@@ -5,8 +5,8 @@ import { createPinia, setActivePinia } from 'pinia'
 import { useRouter } from 'vue-router'
 import { server } from '../mocks/server'
 import { http, HttpResponse } from 'msw'
-import {useAuthStore} from "../../src/stores/auth";
-import Profile from "../../src/views/Profile.vue";
+import {useAuthStore} from "@/stores/auth";
+import Profile from "@/views/Profile.vue";
 // import { useAuthStore } from '@/stores/auth'
 
 vi.mock('vue-router', () => ({
@@ -23,7 +23,7 @@ describe('Profile.vue Integration', () => {
     
     // Setup logged in user
     const store = useAuthStore()
-    store.setTokens('mock-token', 'mock-refresh')
+    store.setTokens('mock-token')
     store.accessToken = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' })) + '.' + btoa(JSON.stringify({ sub: 1, username: 'testuser' })) + '.signature'
   })
 
@@ -76,7 +76,7 @@ describe('Profile.vue Integration', () => {
       http.get('/api/forum/users/1/posts', () => HttpResponse.json([])),
       http.get('/api/forum/users/1/comments', () => HttpResponse.json([])),
       http.put('/api/1', async ({ request }) => {
-        const data = await request.json()
+        const data = (await request.json()) as Record<string, any>
         return HttpResponse.json({ id: 1, ...data })
       })
     )
@@ -87,7 +87,7 @@ describe('Profile.vue Integration', () => {
     // Click Edit Profile
     const buttons = wrapper.findAll('button')
     const editBtn = buttons.find(b => b.text() === 'Edit Profile')
-    await editBtn.trigger('click')
+    await editBtn!.trigger('click')
     
     // Change username and email
     await wrapper.find('input#username').setValue('updateduser')
@@ -121,12 +121,12 @@ describe('Profile.vue Integration', () => {
     // Click Edit Profile
     const buttons = wrapper.findAll('button')
     const editBtn = buttons.find(b => b.text() === 'Edit Profile')
-    await editBtn.trigger('click')
+    await editBtn!.trigger('click')
     
     // Click Delete Account
     const deleteBtns = wrapper.findAll('button')
     const deleteBtn = deleteBtns.find(b => b.text() === 'Delete Account')
-    await deleteBtn.trigger('click')
+    await deleteBtn!.trigger('click')
     
     // Mock login endpoint for password verification
     server.use(
@@ -139,14 +139,14 @@ describe('Profile.vue Integration', () => {
     await wrapper.find('input#deletePassword').setValue('password123')
     const verifyBtns = wrapper.findAll('button')
     const verifyBtn = verifyBtns.find(b => b.text() === 'Verify')
-    await verifyBtn.trigger('click')
+    await verifyBtn!.trigger('click')
     
     await new Promise(resolve => setTimeout(resolve, 50))
     
     // Confirm delete in dialog
     const confirmBtns = wrapper.findAll('button')
     const confirmBtn = confirmBtns.find(b => b.text() === 'Yes, Delete')
-    await confirmBtn.trigger('click')
+    await confirmBtn!.trigger('click')
     
     await new Promise(resolve => setTimeout(resolve, 50))
     
