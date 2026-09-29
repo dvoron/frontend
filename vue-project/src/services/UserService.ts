@@ -10,7 +10,7 @@ export async function login(dto: LoginUserDto) {
         })
         return [response.data, response.status]
     } catch (error) {
-        if (error.response) {
+        if (axios.isAxiosError(error) && error.response) {
             return [error.response.data, error.response.status]
         }
         return [{ message: 'Network error occurred' }, 503]
@@ -22,7 +22,7 @@ export async function refresh() {
         const response = await axios.post('/api/auth/refresh', {})
         return [response.data, response.status]
     } catch (error) {
-        if (error.response) {
+        if (axios.isAxiosError(error) && error.response) {
             return [error.response.data, error.response.status]
         }
         return [{ message: 'Network error occurred' }, 503]
@@ -38,7 +38,7 @@ export async function register(dto: CreateUserDto) {
         })
         return [response.data, response.status]
     } catch (error) {
-        if (error.response) {
+        if (axios.isAxiosError(error) && error.response) {
             return [error.response.data, error.response.status]
         }
         return [{ message: 'Network error occurred' }, 503]
@@ -62,7 +62,7 @@ export async function getUserById(id: number, accessToken: string) {
         })
         return [response.data, response.status]
     } catch (error) {
-        if (error.response) {
+        if (axios.isAxiosError(error) && error.response) {
             return [error.response.data, error.response.status]
         }
         return [{ message: 'Network error occurred' }, 503]
@@ -76,7 +76,7 @@ export async function updateUser(id: number, user: any, accessToken: string) {
         })
         return [response.data, response.status]
     } catch (error) {
-        if (error.response) {
+        if (axios.isAxiosError(error) && error.response) {
             return [error.response.data, error.response.status]
         }
         return [{ message: 'Network error occurred' }, 503]
@@ -90,7 +90,7 @@ export async function deleteUser(id: number, accessToken: string) {
         })
         return [response.data, response.status]
     } catch (error) {
-        if (error.response) {
+        if (axios.isAxiosError(error) && error.response) {
             return [error.response.data, error.response.status]
         }
         return [{ message: 'Network error occurred' }, 503]

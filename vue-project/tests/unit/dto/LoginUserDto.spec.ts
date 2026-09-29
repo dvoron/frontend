@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { createEmptyLoginUserDto } from '@/dto/LoginUserDto'
+import {createEmptyLoginUserDto} from "../../../src/dto/LoginUserDto";
+// import { createEmptyLoginUserDto } from '@/dto/LoginUserDto'
 
 describe('LoginUserDto', () => {
   it('should return an object with empty login and password', () => {

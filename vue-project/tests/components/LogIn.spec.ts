@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createTestingPinia } from '@pinia/testing'
-import LogIn from '@/views/LogIn.vue'
-import { login } from '@/services/UserService'
 import { useRouter } from 'vue-router'
+import LogIn from "../../src/views/LogIn.vue";
+import {login} from "../../src/services/UserService";
 
 vi.mock('@/services/UserService', () => ({
   login: vi.fn()
@@ -18,7 +18,7 @@ describe('LogIn.vue', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
-    useRouter.mockReturnValue({ push: mockPush })
+    vi.mocked(useRouter).mockReturnValue({ push: mockPush } as any)
   })
 
   const mountComponent = () => {
@@ -69,7 +69,7 @@ describe('LogIn.vue', () => {
   })
 
   it('handles successful login', async () => {
-    login.mockResolvedValueOnce([{ accessToken: 'token', refreshToken: 'refresh' }, 200])
+    vi.mocked(login).mockResolvedValueOnce([{ accessToken: 'token', refreshToken: 'refresh' }, 200])
     
     const wrapper = mountComponent()
     await wrapper.find('input[placeholder="Enter username or email"]').setValue('testuser')
@@ -84,7 +84,7 @@ describe('LogIn.vue', () => {
   })
 
   it('handles login error (401)', async () => {
-    login.mockResolvedValueOnce([{}, 401])
+    vi.mocked(login).mockResolvedValueOnce([{}, 401])
     
     const wrapper = mountComponent()
     await wrapper.find('form').trigger('submit.prevent')
@@ -94,7 +94,7 @@ describe('LogIn.vue', () => {
   })
 
   it('handles login error (500)', async () => {
-    login.mockResolvedValueOnce([{}, 500])
+    vi.mocked(login).mockResolvedValueOnce([{}, 500])
     
     const wrapper = mountComponent()
     await wrapper.find('form').trigger('submit.prevent')

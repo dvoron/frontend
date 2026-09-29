@@ -1,7 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createTestingPinia } from '@pinia/testing'
-import ProfileDeleteAccountDialog from '@/components/ProfileDeleteAccountDialog.vue'
+// import { useAuthStore } from '@/stores/auth'
+import ProfileDeleteAccountDialog from "../../src/components/ProfileDeleteAccountDialog.vue";
+import {useAuthStore} from "../../src/stores/auth";
 
 vi.mock('@/services/UserService', () => ({
   login: vi.fn(),
@@ -22,19 +24,25 @@ describe('ProfileDeleteAccountDialog.vue', () => {
         ...props
       },
       global: {
-        plugins: [createTestingPinia({ createSpy: vi.fn })]
+        plugins: [createTestingPinia({ createSpy: vi.fn, initialState: { auth: { accessToken: 'mock-token' } } })]
       }
     })
   }
 
   it('renders standard footer initially', () => {
     const wrapper = mountComponent()
+    const store = useAuthStore()
+    store.setTokens('mock-token')
+    store.accessToken = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' })) + '.' + btoa(JSON.stringify({ sub: 1, username: 'testuser' })) + '.signature'
     expect(wrapper.text()).toContain('Delete Account')
     expect(wrapper.text()).toContain('Save Changes')
   })
 
   it('transitions to password state when Delete Account is clicked', async () => {
     const wrapper = mountComponent()
+    const store = useAuthStore()
+    store.setTokens('mock-token')
+    store.accessToken = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' })) + '.' + btoa(JSON.stringify({ sub: 1, username: 'testuser' })) + '.signature'
     const deleteBtn = wrapper.find('button.text-red-700') // Delete Account button
     await deleteBtn.trigger('click')
     
@@ -44,6 +52,9 @@ describe('ProfileDeleteAccountDialog.vue', () => {
 
   it('cancels deletion and returns to idle state', async () => {
     const wrapper = mountComponent()
+    const store = useAuthStore()
+    store.setTokens('mock-token')
+    store.accessToken = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' })) + '.' + btoa(JSON.stringify({ sub: 1, username: 'testuser' })) + '.signature'
     wrapper.vm.startDelete()
     await wrapper.vm.$nextTick()
     
@@ -55,6 +66,9 @@ describe('ProfileDeleteAccountDialog.vue', () => {
 
   it('emits cancelEdit when cancel button in standard footer is clicked', async () => {
     const wrapper = mountComponent()
+    const store = useAuthStore()
+    store.setTokens('mock-token')
+    store.accessToken = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' })) + '.' + btoa(JSON.stringify({ sub: 1, username: 'testuser' })) + '.signature'
     const cancelBtn = wrapper.findAll('button').find(b => b.text() === 'Cancel')
     await cancelBtn.trigger('click')
     
@@ -63,9 +77,12 @@ describe('ProfileDeleteAccountDialog.vue', () => {
 
   it('verifies password and transitions to confirm state', async () => {
     const { login } = await import('@/services/UserService')
-    login.mockResolvedValueOnce([{}, 200])
+    vi.mocked(login).mockResolvedValueOnce([{}, 200])
     
     const wrapper = mountComponent()
+    const store = useAuthStore()
+    store.setTokens('mock-token')
+    store.accessToken = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' })) + '.' + btoa(JSON.stringify({ sub: 1, username: 'testuser' })) + '.signature'
     wrapper.vm.startDelete()
     await wrapper.vm.$nextTick()
     
@@ -82,9 +99,12 @@ describe('ProfileDeleteAccountDialog.vue', () => {
 
   it('shows error if password verification fails', async () => {
     const { login } = await import('@/services/UserService')
-    login.mockResolvedValueOnce([{}, 401])
+    vi.mocked(login).mockResolvedValueOnce([{}, 401])
     
     const wrapper = mountComponent()
+    const store = useAuthStore()
+    store.setTokens('mock-token')
+    store.accessToken = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' })) + '.' + btoa(JSON.stringify({ sub: 1, username: 'testuser' })) + '.signature'
     wrapper.vm.startDelete()
     await wrapper.vm.$nextTick()
     
@@ -101,6 +121,9 @@ describe('ProfileDeleteAccountDialog.vue', () => {
 
   it('shows error if password is empty on verify', async () => {
     const wrapper = mountComponent()
+    const store = useAuthStore()
+    store.setTokens('mock-token')
+    store.accessToken = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' })) + '.' + btoa(JSON.stringify({ sub: 1, username: 'testuser' })) + '.signature'
     wrapper.vm.startDelete()
     await wrapper.vm.$nextTick()
     
@@ -112,13 +135,16 @@ describe('ProfileDeleteAccountDialog.vue', () => {
 
   it('deletes account successfully and redirects to login', async () => {
     const { deleteUser } = await import('@/services/UserService')
-    deleteUser.mockResolvedValueOnce([{}, 200])
+    vi.mocked(deleteUser).mockResolvedValueOnce([{}, 200])
     
     const { useRouter } = await import('vue-router')
     const mockPush = vi.fn()
-    useRouter.mockReturnValue({ push: mockPush })
+    vi.mocked(useRouter).mockReturnValue({ push: mockPush } as any)
     
     const wrapper = mountComponent()
+    const store = useAuthStore()
+    store.setTokens('mock-token')
+    store.accessToken = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' })) + '.' + btoa(JSON.stringify({ sub: 1, username: 'testuser' })) + '.signature'
     wrapper.vm.deleteState = 'confirm'
     await wrapper.vm.$nextTick()
     
@@ -132,9 +158,12 @@ describe('ProfileDeleteAccountDialog.vue', () => {
 
   it('shows error if account deletion fails', async () => {
     const { deleteUser } = await import('@/services/UserService')
-    deleteUser.mockResolvedValueOnce([{ message: 'Delete failed' }, 500])
+    vi.mocked(deleteUser).mockResolvedValueOnce([{ message: 'Delete failed' }, 500])
     
     const wrapper = mountComponent()
+    const store = useAuthStore()
+    store.setTokens('mock-token')
+    store.accessToken = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' })) + '.' + btoa(JSON.stringify({ sub: 1, username: 'testuser' })) + '.signature'
     wrapper.vm.deleteState = 'confirm'
     await wrapper.vm.$nextTick()
     
@@ -147,9 +176,12 @@ describe('ProfileDeleteAccountDialog.vue', () => {
 
   it('shows error if account deletion fails with no message', async () => {
     const { deleteUser } = await import('@/services/UserService')
-    deleteUser.mockResolvedValueOnce([null, 500])
+    vi.mocked(deleteUser).mockResolvedValueOnce([null, 500])
     
     const wrapper = mountComponent()
+    const store = useAuthStore()
+    store.setTokens('mock-token')
+    store.accessToken = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' })) + '.' + btoa(JSON.stringify({ sub: 1, username: 'testuser' })) + '.signature'
     wrapper.vm.deleteState = 'confirm'
     await wrapper.vm.$nextTick()
     

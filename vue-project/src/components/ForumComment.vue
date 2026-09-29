@@ -1,15 +1,13 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useAuthStore } from '@/stores/auth'
+import type { Comment } from '@/views/Forum.vue'
 
 const authStore = useAuthStore()
 
-const props = defineProps({
-  comment: {
-    type: Object,
-    required: true
-  }
-})
+const props = defineProps<{
+  comment: Comment
+}>()
 
 const emit = defineEmits(['reply'])
 
@@ -24,7 +22,7 @@ const submitReply = () => {
   showReplyInput.value = false
 }
 
-const handleChildReply = (parentId, content) => {
+const handleChildReply = (parentId: number, content: string) => {
   emit('reply', parentId, content)
 }
 </script>

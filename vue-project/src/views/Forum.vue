@@ -4,6 +4,25 @@ import { useAuthStore } from '@/stores/auth'
 import ForumComment from '@/components/ForumComment.vue'
 import { getAllPosts, createPost as apiCreatePost, createComment as apiCreateComment } from '@/services/ForumService'
 
+export interface Comment {
+  id: number;
+  author: string;
+  timestamp: string;
+  content: string;
+  replies?: Comment[];
+}
+
+export interface Post {
+  id: number;
+  author: string;
+  timestamp: string;
+  title: string;
+  content: string;
+  comments: Comment[];
+  showComments?: boolean;
+  newCommentContent?: string;
+}
+
 const authStore = useAuthStore()
 
 // Helper to get current username
@@ -12,9 +31,10 @@ const getCurrentUsername = () => {
 }
 
 // State for posts
-const posts = ref([])
+const posts = ref<Post[]>([])
 
 const loadPosts = async () => {
+  if (!authStore.accessToken) return
   const [data, status] = await getAllPosts(authStore.accessToken)
   if (status === 200) {
     posts.value = data
@@ -32,6 +52,7 @@ const newPost = ref({
 })
 
 const createPost = async () => {
+  if (!authStore.accessToken) return
   if (!newPost.value.title.trim()) return
   if (newPost.value.title.length > 255 || (newPost.value.content || '').length > 2000) return
 
@@ -45,8 +66,9 @@ const createPost = async () => {
   }
 }
 
-const addComment = async (post) => {
-  if (!post.newCommentContent.trim()) return
+const addComment = async (post: Post) => {
+  if (!authStore.accessToken) return
+  if (!post.newCommentContent?.trim()) return
   if ((post.newCommentContent || '').length > 1000) return
 
   const [data, status] = await apiCreateComment(post.id, null, post.newCommentContent, authStore.accessToken)
@@ -58,7 +80,7 @@ const addComment = async (post) => {
 }
 
 // Function to recursively find a comment and add a reply
-const addReplyToComment = (commentsList, parentId, newComment) => {
+const addReplyToComment = (commentsList: Comment[], parentId: number, newComment: Comment): boolean => {
   for (let comment of commentsList) {
     if (comment.id === parentId) {
       if (!comment.replies) comment.replies = []
@@ -74,7 +96,8 @@ const addReplyToComment = (commentsList, parentId, newComment) => {
   return false
 }
 
-const handleReply = async (postId, parentCommentId, content) => {
+const handleReply = async (postId: number, parentCommentId: number, content: string) => {
+  if (!authStore.accessToken) return
   const [data, status] = await apiCreateComment(postId, parentCommentId, content, authStore.accessToken)
   
   if (status === 200) {

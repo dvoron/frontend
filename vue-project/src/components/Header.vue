@@ -7,7 +7,9 @@ const authStore = useAuthStore()
 const router = useRouter()
 
 async function onLogout() {
-  await logout(authStore.accessToken)
+  if (authStore.accessToken) {
+    await logout(authStore.accessToken)
+  }
   authStore.clearTokens()
   router.push({ name: "login" })
 }

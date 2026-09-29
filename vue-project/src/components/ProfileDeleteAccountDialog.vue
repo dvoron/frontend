@@ -69,6 +69,12 @@ const confirmDeleteAccount = async () => {
   isDeleting.value = true
   deleteError.value = ''
   
+  if (!authStore.userId || !authStore.accessToken) {
+    deleteError.value = 'User is not authenticated.'
+    isDeleting.value = false
+    return
+  }
+  
   const [data, status] = await deleteUser(authStore.userId, authStore.accessToken)
   
   isDeleting.value = false

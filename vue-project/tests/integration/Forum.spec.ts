@@ -1,11 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
-import Forum from '@/views/Forum.vue'
-import ForumComment from '@/components/ForumComment.vue'
+// import Forum from '@/views/Forum.vue'
+// import ForumComment from '@/components/ForumComment.vue'
 import { server } from '../mocks/server'
 import { http, HttpResponse } from 'msw'
-import { useAuthStore } from '@/stores/auth'
+import Forum from "../../src/views/Forum.vue";
+import ForumComment from "../../src/components/ForumComment.vue";
+import {useAuthStore} from "../../src/stores/auth";
+// import { useAuthStore } from '@/stores/auth'
 
 describe('Forum.vue Integration', () => {
   beforeEach(() => {
@@ -31,6 +34,10 @@ describe('Forum.vue Integration', () => {
         ])
       })
     )
+
+    const store = useAuthStore()
+    store.setTokens('mock-token')
+    store.accessToken = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' })) + '.' + btoa(JSON.stringify({ username: 'testuser' })) + '.signature'
 
     const wrapper = mountComponent()
     

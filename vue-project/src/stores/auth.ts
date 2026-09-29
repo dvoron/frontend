@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { jwtDecode } from 'jwt-decode'
+import { refresh } from '@/services/UserService'
 
 export const useAuthStore = defineStore('auth', {
     state: () => ({
@@ -11,7 +12,7 @@ export const useAuthStore = defineStore('auth', {
         userId: (state) => {
             if (!state.accessToken) return null;
             try {
-                return jwtDecode(state.accessToken).sub;
+                return jwtDecode<{ sub?: number, username?: string }>(state.accessToken).sub;
             } catch (e) {
                 return null;
             }
@@ -19,7 +20,7 @@ export const useAuthStore = defineStore('auth', {
         username: (state) => {
             if (!state.accessToken) return null;
             try {
-                return jwtDecode(state.accessToken).username;
+                return jwtDecode<{ sub?: number, username?: string }>(state.accessToken).username;
             } catch (e) {
                 return null;
             }
@@ -34,7 +35,6 @@ export const useAuthStore = defineStore('auth', {
             this.accessToken = null
         },
         async tryRefresh() {
-            const { refresh } = await import('@/services/UserService');
             const [data, status] = await refresh();
             if (status === 200 && data.accessToken) {
                 this.setTokens(data.accessToken);

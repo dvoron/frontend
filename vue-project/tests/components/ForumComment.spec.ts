@@ -1,8 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createTestingPinia } from '@pinia/testing'
-import ForumComment from '@/components/ForumComment.vue'
-import { useAuthStore } from '@/stores/auth'
+import ForumComment from "../../src/components/ForumComment.vue";
+// import ForumComment from '@/components/ForumComment.vue'
+// import { useAuthStore } from '@/stores/auth'
 
 describe('ForumComment.vue', () => {
   const defaultComment = {

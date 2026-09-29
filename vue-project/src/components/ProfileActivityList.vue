@@ -3,16 +3,30 @@ import { ref, onMounted, computed } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { getUserPosts, getUserComments } from '@/services/ForumService'
 
+export interface UserPost {
+  id: number;
+  title: string;
+  content: string;
+  timestamp: string;
+}
+
+export interface UserComment {
+  id: number;
+  postTitle: string;
+  content: string;
+  timestamp: string;
+}
+
 const authStore = useAuthStore()
 
-const userPosts = ref([])
-const userComments = ref([])
+const userPosts = ref<UserPost[]>([])
+const userComments = ref<UserComment[]>([])
 const activityFilter = ref('both') // 'posts', 'comments', 'both'
 
 const loadUserActivity = async () => {
   const userId = authStore.userId
   
-  if (!userId) return
+  if (!userId || !authStore.accessToken) return
 
   const [postsData, postsStatus] = await getUserPosts(userId, authStore.accessToken)
   if (postsStatus === 200) {
@@ -32,7 +46,7 @@ onMounted(async () => {
 defineExpose({ loadUserActivity })
 
 const displayedActivity = computed(() => {
-  let activity = []
+  let activity: any[] = []
   
   if (activityFilter.value === 'both' || activityFilter.value === 'posts') {
     const mappedPosts = userPosts.value.map(post => ({

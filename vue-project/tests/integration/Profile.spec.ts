@@ -1,11 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
-import Profile from '@/views/Profile.vue'
+// import Profile from '@/views/Profile.vue'
 import { useRouter } from 'vue-router'
 import { server } from '../mocks/server'
 import { http, HttpResponse } from 'msw'
-import { useAuthStore } from '@/stores/auth'
+import {useAuthStore} from "../../src/stores/auth";
+import Profile from "../../src/views/Profile.vue";
+// import { useAuthStore } from '@/stores/auth'
 
 vi.mock('vue-router', () => ({
   useRouter: vi.fn()
@@ -16,7 +18,7 @@ describe('Profile.vue Integration', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
-    useRouter.mockReturnValue({ push: mockPush })
+    vi.mocked(useRouter).mockReturnValue({ push: mockPush } as any)
     setActivePinia(createPinia())
     
     // Setup logged in user

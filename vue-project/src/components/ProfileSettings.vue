@@ -4,16 +4,13 @@ import { useAuthStore } from '@/stores/auth'
 import { updateUser } from '@/services/UserService'
 import ProfileDeleteAccountDialog from './ProfileDeleteAccountDialog.vue'
 
-const props = defineProps({
+const props = defineProps<{
   initialUser: {
-    type: Object,
-    required: true
-  },
-  isLoading: {
-    type: Boolean,
-    default: true
-  }
-})
+    username: string;
+    email: string;
+  };
+  isLoading?: boolean;
+}>()
 
 const emit = defineEmits(['profileUpdated', 'editingChange'])
 
@@ -23,7 +20,7 @@ const isEditing = ref(false)
 const isSaving = ref(false)
 const errorMessage = ref('')
 const successMessage = ref('')
-const deleteDialogRef = ref(null)
+const deleteDialogRef = ref<InstanceType<typeof ProfileDeleteAccountDialog> | null>(null)
 
 const user = ref({
   username: '',
@@ -69,7 +66,13 @@ const handleSave = async () => {
   successMessage.value = ''
 
   const userId = authStore.userId
-  const updateData = {
+  if (!userId || !authStore.accessToken) {
+    errorMessage.value = 'User is not authenticated.'
+    isSaving.value = false
+    return
+  }
+  
+  const updateData: any = {
     username: user.value.username,
     email: user.value.email,
   }

@@ -1,8 +1,10 @@
 import { describe, it, expect, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createTestingPinia } from '@pinia/testing'
-import ProfileSettings from '@/components/ProfileSettings.vue'
-import ProfileDeleteAccountDialog from '@/components/ProfileDeleteAccountDialog.vue'
+import { useAuthStore } from '@/stores/auth'
+import ProfileSettings from "../../src/components/ProfileSettings.vue";
+// import ProfileSettings from '@/components/ProfileSettings.vue'
+// import ProfileDeleteAccountDialog from '@/components/ProfileDeleteAccountDialog.vue'
 
 vi.mock('@/services/UserService', () => ({
   updateUser: vi.fn()
@@ -22,7 +24,7 @@ describe('ProfileSettings.vue', () => {
         ...props
       },
       global: {
-        plugins: [createTestingPinia({ createSpy: vi.fn })],
+        plugins: [createTestingPinia({ createSpy: vi.fn, initialState: { auth: { accessToken: 'mock-token' } } })],
         stubs: {
           ProfileDeleteAccountDialog: {
             template: '<div />',
@@ -37,6 +39,9 @@ describe('ProfileSettings.vue', () => {
 
   it('renders user info when not editing', () => {
     const wrapper = mountComponent()
+    const store = useAuthStore()
+    store.setTokens('mock-token')
+    store.accessToken = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' })) + '.' + btoa(JSON.stringify({ sub: 1, username: 'testuser' })) + '.signature'
     expect(wrapper.text()).toContain('testuser')
     expect(wrapper.text()).toContain('test@example.com')
     expect(wrapper.find('form').exists()).toBe(false)
@@ -44,6 +49,9 @@ describe('ProfileSettings.vue', () => {
 
   it('toggles edit mode and emits editingChange', async () => {
     const wrapper = mountComponent()
+    const store = useAuthStore()
+    store.setTokens('mock-token')
+    store.accessToken = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' })) + '.' + btoa(JSON.stringify({ sub: 1, username: 'testuser' })) + '.signature'
     await wrapper.find('button').trigger('click') // Edit Profile button
     
     expect(wrapper.find('form').exists()).toBe(true)
@@ -53,6 +61,9 @@ describe('ProfileSettings.vue', () => {
 
   it('cancels edit mode and resets values', async () => {
     const wrapper = mountComponent()
+    const store = useAuthStore()
+    store.setTokens('mock-token')
+    store.accessToken = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' })) + '.' + btoa(JSON.stringify({ sub: 1, username: 'testuser' })) + '.signature'
     await wrapper.find('button').trigger('click') // Edit Profile button
     
     const usernameInput = wrapper.find('#username')
@@ -73,9 +84,12 @@ describe('ProfileSettings.vue', () => {
 
   it('saves profile successfully without changing password', async () => {
     const { updateUser } = await import('@/services/UserService')
-    updateUser.mockResolvedValueOnce([{}, 200])
+    vi.mocked(updateUser).mockResolvedValueOnce([{}, 200])
     
     const wrapper = mountComponent()
+    const store = useAuthStore()
+    store.setTokens('mock-token')
+    store.accessToken = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' })) + '.' + btoa(JSON.stringify({ sub: 1, username: 'testuser' })) + '.signature'
     await wrapper.find('button').trigger('click') // Edit Profile button
     
     const usernameInput = wrapper.find('#username')
@@ -85,7 +99,7 @@ describe('ProfileSettings.vue', () => {
     
     await wrapper.find('form').trigger('submit.prevent')
     
-    expect(updateUser).toHaveBeenCalledWith(null, { username: 'updateduser', email: 'updateemail' }, null)
+    expect(updateUser).toHaveBeenCalledWith(1, { username: 'updateduser', email: 'updateemail' }, expect.any(String))
     await new Promise(resolve => setTimeout(resolve, 0))
     expect(wrapper.vm.successMessage).toBe('Profile updated successfully!')
     expect(wrapper.emitted('profileUpdated')).toBeTruthy()
@@ -94,6 +108,9 @@ describe('ProfileSettings.vue', () => {
 
   it('shows error if new password is provided without old password', async () => {
     const wrapper = mountComponent()
+    const store = useAuthStore()
+    store.setTokens('mock-token')
+    store.accessToken = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' })) + '.' + btoa(JSON.stringify({ sub: 1, username: 'testuser' })) + '.signature'
     await wrapper.find('button').trigger('click')
     
     const newPasswordInput = wrapper.find('#newPassword')
@@ -106,9 +123,12 @@ describe('ProfileSettings.vue', () => {
 
   it('saves profile successfully with password change', async () => {
     const { updateUser } = await import('@/services/UserService')
-    updateUser.mockResolvedValueOnce([{}, 200])
+    vi.mocked(updateUser).mockResolvedValueOnce([{}, 200])
     
     const wrapper = mountComponent()
+    const store = useAuthStore()
+    store.setTokens('mock-token')
+    store.accessToken = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' })) + '.' + btoa(JSON.stringify({ sub: 1, username: 'testuser' })) + '.signature'
     await wrapper.find('button').trigger('click')
     
     const oldPasswordInput = wrapper.find('#oldPassword')
@@ -119,12 +139,12 @@ describe('ProfileSettings.vue', () => {
     
     await wrapper.find('form').trigger('submit.prevent')
     
-    expect(updateUser).toHaveBeenCalledWith(null, {
+    expect(updateUser).toHaveBeenCalledWith(1, {
       username: 'testuser',
       email: 'test@example.com',
       oldPassword: 'oldpass',
       newPassword: 'newpass'
-    }, null)
+    }, expect.any(String))
     
     await new Promise(resolve => setTimeout(resolve, 0))
     expect(wrapper.vm.successMessage).toBe('Profile updated successfully!')
@@ -132,9 +152,12 @@ describe('ProfileSettings.vue', () => {
 
   it('shows error if profile update fails', async () => {
     const { updateUser } = await import('@/services/UserService')
-    updateUser.mockResolvedValueOnce([{ message: 'Update failed' }, 400])
+    vi.mocked(updateUser).mockResolvedValueOnce([{ message: 'Update failed' }, 400])
     
     const wrapper = mountComponent()
+    const store = useAuthStore()
+    store.setTokens('mock-token')
+    store.accessToken = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' })) + '.' + btoa(JSON.stringify({ sub: 1, username: 'testuser' })) + '.signature'
     await wrapper.find('button').trigger('click')
     
     await wrapper.find('form').trigger('submit.prevent')
@@ -145,9 +168,12 @@ describe('ProfileSettings.vue', () => {
 
   it('shows error if profile update fails without errorMessage', async () => {
     const { updateUser } = await import('@/services/UserService')
-    updateUser.mockResolvedValueOnce([{}])
+    vi.mocked(updateUser).mockResolvedValueOnce([{}])
 
     const wrapper = mountComponent()
+    const store = useAuthStore()
+    store.setTokens('mock-token')
+    store.accessToken = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' })) + '.' + btoa(JSON.stringify({ sub: 1, username: 'testuser' })) + '.signature'
     await wrapper.find('button').trigger('click')
 
     await wrapper.find('form').trigger('submit.prevent')

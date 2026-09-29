@@ -12,7 +12,7 @@ const router = useRouter()
 const isLoading = ref(true)
 const isEditing = ref(false)
 const errorMessage = ref('')
-const activityListRef = ref(null)
+const activityListRef = ref<InstanceType<typeof ProfileActivityList> | null>(null)
 
 const user = ref({
   username: '',
@@ -21,7 +21,7 @@ const user = ref({
 
 onMounted(async () => {
   const userId = authStore.userId
-  if (!userId) {
+  if (!userId || !authStore.accessToken) {
     router.push({ name: 'login' })
     return
   }
@@ -36,7 +36,7 @@ onMounted(async () => {
   isLoading.value = false
 })
 
-const handleProfileUpdated = (updatedUser) => {
+const handleProfileUpdated = (updatedUser: { username: string, email: string }) => {
   user.value.username = updatedUser.username
   user.value.email = updatedUser.email
   if (activityListRef.value) {

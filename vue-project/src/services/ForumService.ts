@@ -7,7 +7,7 @@ export async function getAllPosts(accessToken: string) {
         })
         return [response.data, response.status]
     } catch (error) {
-        if (error.response) {
+        if (axios.isAxiosError(error) && error.response) {
             return [error.response.data, error.response.status]
         }
         return [{ message: 'Network error occurred' }, 503]
@@ -24,7 +24,7 @@ export async function createPost(title: string, content: string, accessToken: st
         })
         return [response.data, response.status]
     } catch (error) {
-        if (error.response) {
+        if (axios.isAxiosError(error) && error.response) {
             return [error.response.data, error.response.status]
         }
         return [{ message: 'Network error occurred' }, 503]
@@ -42,7 +42,7 @@ export async function createComment(postId: number, parentCommentId: number | nu
         })
         return [response.data, response.status]
     } catch (error) {
-        if (error.response) {
+        if (axios.isAxiosError(error) && error.response) {
             return [error.response.data, error.response.status]
         }
         return [{ message: 'Network error occurred' }, 503]
@@ -56,7 +56,7 @@ export async function getUserPosts(userId: number, accessToken: string) {
         })
         return [response.data, response.status]
     } catch (error) {
-        if (error.response) {
+        if (axios.isAxiosError(error) && error.response) {
             return [error.response.data, error.response.status]
         }
         return [{ message: 'Network error occurred' }, 503]
@@ -70,7 +70,7 @@ export async function getUserComments(userId: number, accessToken: string) {
         })
         return [response.data, response.status]
     } catch (error) {
-        if (error.response) {
+        if (axios.isAxiosError(error) && error.response) {
             return [error.response.data, error.response.status]
         }
         return [{ message: 'Network error occurred' }, 503]

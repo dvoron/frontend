@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createTestingPinia } from '@pinia/testing'
+import { useRouter } from 'vue-router'
 import Register from '@/views/Register.vue'
 import { register } from '@/services/UserService'
-import { useRouter } from 'vue-router'
 
 vi.mock('@/services/UserService', () => ({
   register: vi.fn()
@@ -18,7 +18,7 @@ describe('Register.vue', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
-    useRouter.mockReturnValue({ push: mockPush })
+    vi.mocked(useRouter).mockReturnValue({ push: mockPush } as any)
   })
 
   const mountComponent = () => {
@@ -42,7 +42,7 @@ describe('Register.vue', () => {
 
   it('handles successful registration', async () => {
     // Note: The component checks for status 200 instead of 201 for success
-    register.mockResolvedValueOnce([{ accessToken: 'token', refreshToken: 'refresh' }, 200])
+    vi.mocked(register).mockResolvedValueOnce([{ accessToken: 'token', refreshToken: 'refresh' }, 200])
     
     const wrapper = mountComponent()
     await wrapper.find('input[placeholder="Username"]').setValue('testuser')
@@ -62,7 +62,7 @@ describe('Register.vue', () => {
   })
 
   it('handles email already taken error (409)', async () => {
-    register.mockResolvedValueOnce([{ code: 'EMAIL_ALREADY_TAKEN', message: 'Email in use' }, 409])
+    vi.mocked(register).mockResolvedValueOnce([{ code: 'EMAIL_ALREADY_TAKEN', message: 'Email in use' }, 409])
     
     const wrapper = mountComponent()
     await wrapper.find('form').trigger('submit.prevent')
@@ -72,7 +72,7 @@ describe('Register.vue', () => {
   })
 
   it('handles username already taken error (409)', async () => {
-    register.mockResolvedValueOnce([{ code: 'USERNAME_ALREADY_TAKEN', message: 'Username in use' }, 409])
+    vi.mocked(register).mockResolvedValueOnce([{ code: 'USERNAME_ALREADY_TAKEN', message: 'Username in use' }, 409])
     
     const wrapper = mountComponent()
     await wrapper.find('form').trigger('submit.prevent')
@@ -82,7 +82,7 @@ describe('Register.vue', () => {
   })
 
   it('handles general error (500)', async () => {
-    register.mockResolvedValueOnce([{}, 500])
+    vi.mocked(register).mockResolvedValueOnce([{}, 500])
     
     const wrapper = mountComponent()
     await wrapper.find('form').trigger('submit.prevent')
