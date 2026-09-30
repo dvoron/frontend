@@ -1,7 +1,11 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
-import {useAuthStore} from "@/stores/auth";
-// import { useAuthStore } from '@/stores/auth'
+import { useAuthStore } from "@/stores/auth";
+import { refresh } from '@/services/UserService'
+
+vi.mock('@/services/UserService', () => ({
+  refresh: vi.fn()
+}))
 
 describe('Auth Store', () => {
   beforeEach(() => {
@@ -75,6 +79,32 @@ describe('Auth Store', () => {
       const store = useAuthStore()
       store.accessToken = null
       expect(store.username).toBeNull()
+    })
+  })
+
+  describe('tryRefresh', () => {
+    it('returns true and sets token on success', async () => {
+      vi.mocked(refresh).mockResolvedValue([{ accessToken: 'new-token' }, 200] as any)
+      const store = useAuthStore()
+      const result = await store.tryRefresh()
+      expect(result).toBe(true)
+      expect(store.accessToken).toBe('new-token')
+    })
+
+    it('returns false if status is not 200', async () => {
+      vi.mocked(refresh).mockResolvedValue([{}, 401] as any)
+      const store = useAuthStore()
+      const result = await store.tryRefresh()
+      expect(result).toBe(false)
+      expect(store.accessToken).toBeNull()
+    })
+
+    it('returns false if accessToken is missing in response', async () => {
+      vi.mocked(refresh).mockResolvedValue([{}, 200] as any)
+      const store = useAuthStore()
+      const result = await store.tryRefresh()
+      expect(result).toBe(false)
+      expect(store.accessToken).toBeNull()
     })
   })
 })
