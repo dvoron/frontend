@@ -99,7 +99,6 @@ const addReplyToComment = (commentsList: Comment[], parentId: number, newComment
 const handleReply = async (postId: number, parentCommentId: number, content: string) => {
   if (!authStore.accessToken) return
   const [data, status] = await apiCreateComment(postId, parentCommentId, content, authStore.accessToken)
-  
   if (status === 200) {
     const post = posts.value.find(p => p.id === postId)
     if (post) {
