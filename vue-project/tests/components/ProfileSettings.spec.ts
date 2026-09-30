@@ -1,15 +1,20 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createTestingPinia } from '@pinia/testing'
 import { useAuthStore } from '@/stores/auth'
 import ProfileSettings from "@/components/ProfileSettings.vue";
 import ProfileDeleteAccountDialog from "@/components/ProfileDeleteAccountDialog.vue";
+import { updateUser } from '@/services/UserService'
 
 vi.mock('@/services/UserService', () => ({
   updateUser: vi.fn()
 }))
 
 describe('ProfileSettings.vue', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
   const defaultUser = {
     username: 'testuser',
     email: 'test@example.com'
@@ -83,7 +88,6 @@ describe('ProfileSettings.vue', () => {
   })
 
   it('saves profile successfully without changing password', async () => {
-    const { updateUser } = await import('@/services/UserService')
     vi.mocked(updateUser).mockResolvedValueOnce([{}, 200])
     
     const wrapper = mountComponent()
@@ -122,7 +126,6 @@ describe('ProfileSettings.vue', () => {
   })
 
   it('saves profile successfully with password change', async () => {
-    const { updateUser } = await import('@/services/UserService')
     vi.mocked(updateUser).mockResolvedValueOnce([{}, 200])
     
     const wrapper = mountComponent()
@@ -151,7 +154,6 @@ describe('ProfileSettings.vue', () => {
   })
 
   it('shows error if profile update fails', async () => {
-    const { updateUser } = await import('@/services/UserService')
     vi.mocked(updateUser).mockResolvedValueOnce([{ message: 'Update failed' }, 400])
     
     const wrapper = mountComponent()
@@ -167,7 +169,6 @@ describe('ProfileSettings.vue', () => {
   })
 
   it('shows error if profile update fails without errorMessage', async () => {
-    const { updateUser } = await import('@/services/UserService')
     vi.mocked(updateUser).mockResolvedValueOnce([{}])
 
     const wrapper = mountComponent()
@@ -181,5 +182,16 @@ describe('ProfileSettings.vue', () => {
     await new Promise(resolve => setTimeout(resolve, 0))
     expect(wrapper.text()).toContain('Failed to update profile.')
 
+  })
+
+  it('shows error if user is not authenticated when saving', async () => {
+    const wrapper = mountComponent()
+    const store = useAuthStore()
+    store.accessToken = null
+
+    await wrapper.find('button').trigger('click')
+    await wrapper.find('form').trigger('submit.prevent')
+
+    expect(wrapper.text()).toContain('User is not authenticated.')
   })
 })

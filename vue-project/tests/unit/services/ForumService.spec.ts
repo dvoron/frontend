@@ -33,6 +33,15 @@ describe('ForumService', () => {
       expect(data).toEqual(mockError.response.data)
       expect(status).toBe(500)
     })
+
+    it('should handle get all posts network error', async () => {
+      vi.mocked(axios.get).mockRejectedValueOnce(new Error('Network Error'))
+
+      const [data, status] = await getAllPosts('token123')
+
+      expect(data).toEqual({ message: 'Network error occurred' })
+      expect(status).toBe(503)
+    })
   })
 
   describe('createPost', () => {
@@ -60,6 +69,15 @@ describe('ForumService', () => {
 
       expect(data).toEqual(mockError.response.data)
       expect(status).toBe(400)
+    })
+
+    it('should handle create post network error', async () => {
+      vi.mocked(axios.post).mockRejectedValueOnce(new Error('Network Error'))
+
+      const [data, status] = await createPost('New Post', 'Content', 'token123')
+
+      expect(data).toEqual({ message: 'Network error occurred' })
+      expect(status).toBe(503)
     })
   })
 
@@ -90,6 +108,15 @@ describe('ForumService', () => {
       expect(data).toEqual(mockError.response.data)
       expect(status).toBe(400)
     })
+
+    it('should handle create comment network error', async () => {
+      vi.mocked(axios.post).mockRejectedValueOnce(new Error('Network Error'))
+
+      const [data, status] = await createComment(1, null, 'Comment', 'token123')
+
+      expect(data).toEqual({ message: 'Network error occurred' })
+      expect(status).toBe(503)
+    })
   })
 
   describe('getUserPosts', () => {
@@ -115,6 +142,15 @@ describe('ForumService', () => {
       expect(data).toEqual(mockError.response.data)
       expect(status).toBe(500)
     })
+
+    it('should handle get user posts network error', async () => {
+      vi.mocked(axios.get).mockRejectedValueOnce(new Error('Network Error'))
+
+      const [data, status] = await getUserPosts(1, 'token123')
+
+      expect(data).toEqual({ message: 'Network error occurred' })
+      expect(status).toBe(503)
+    })
   })
 
   describe('getUserComments', () => {
@@ -139,6 +175,15 @@ describe('ForumService', () => {
 
       expect(data).toEqual(mockError.response.data)
       expect(status).toBe(500)
+    })
+
+    it('should handle get user comments network error', async () => {
+      vi.mocked(axios.get).mockRejectedValueOnce(new Error('Network Error'))
+
+      const [data, status] = await getUserComments(1, 'token123')
+
+      expect(data).toEqual({ message: 'Network error occurred' })
+      expect(status).toBe(503)
     })
   })
 })

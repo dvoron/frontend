@@ -4,6 +4,8 @@ import { createTestingPinia } from '@pinia/testing'
 // import { useAuthStore } from '@/stores/auth'
 import ProfileDeleteAccountDialog from "@/components/ProfileDeleteAccountDialog.vue";
 import {useAuthStore} from "@/stores/auth";
+import { login, deleteUser } from '@/services/UserService'
+import { useRouter } from 'vue-router'
 
 vi.mock('@/services/UserService', () => ({
   login: vi.fn(),
@@ -15,6 +17,10 @@ vi.mock('vue-router', () => ({
 }))
 
 describe('ProfileDeleteAccountDialog.vue', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
   const mountComponent = (props: Record<string, any> = {}) => {
     return mount(ProfileDeleteAccountDialog, {
       props: {
@@ -76,7 +82,6 @@ describe('ProfileDeleteAccountDialog.vue', () => {
   })
 
   it('verifies password and transitions to confirm state', async () => {
-    const { login } = await import('@/services/UserService')
     vi.mocked(login).mockResolvedValueOnce([{}, 200])
     
     const wrapper = mountComponent()
@@ -98,7 +103,6 @@ describe('ProfileDeleteAccountDialog.vue', () => {
   })
 
   it('shows error if password verification fails', async () => {
-    const { login } = await import('@/services/UserService')
     vi.mocked(login).mockResolvedValueOnce([{}, 401])
     
     const wrapper = mountComponent()
@@ -134,11 +138,9 @@ describe('ProfileDeleteAccountDialog.vue', () => {
   })
 
   it('deletes account successfully and redirects to login', async () => {
-    const { deleteUser, login } = await import('@/services/UserService')
     vi.mocked(login).mockResolvedValueOnce([{}, 200])
     vi.mocked(deleteUser).mockResolvedValueOnce([{}, 200])
     
-    const { useRouter } = await import('vue-router')
     const mockPush = vi.fn()
     vi.mocked(useRouter).mockReturnValue({ push: mockPush } as any)
     
@@ -163,7 +165,6 @@ describe('ProfileDeleteAccountDialog.vue', () => {
   })
 
   it('shows error if account deletion fails', async () => {
-    const { deleteUser, login } = await import('@/services/UserService')
     vi.mocked(login).mockResolvedValueOnce([{}, 200])
     vi.mocked(deleteUser).mockResolvedValueOnce([{ message: 'Delete failed' }, 500])
     
@@ -187,7 +188,6 @@ describe('ProfileDeleteAccountDialog.vue', () => {
   })
 
   it('shows error if account deletion fails with no message', async () => {
-    const { deleteUser, login } = await import('@/services/UserService')
     vi.mocked(login).mockResolvedValueOnce([{}, 200])
     vi.mocked(deleteUser).mockResolvedValueOnce([null, 500])
     
@@ -208,5 +208,31 @@ describe('ProfileDeleteAccountDialog.vue', () => {
     
     await new Promise(resolve => setTimeout(resolve, 0))
     expect(wrapper.text()).toContain('Failed to delete account.')
+  })
+
+  it('shows error if user is not authenticated on confirm delete', async () => {
+    vi.mocked(login).mockResolvedValueOnce([{}, 200])
+    
+    const wrapper = mountComponent()
+    const store = useAuthStore()
+    store.setTokens('mock-token')
+    store.accessToken = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' })) + '.' + btoa(JSON.stringify({ sub: 1, username: 'testuser' })) + '.signature'
+    
+    const startDeleteBtn = wrapper.find('button.text-red-700')
+    await startDeleteBtn.trigger('click')
+    const passwordInput = wrapper.find('input[type="password"]')
+    await passwordInput.setValue('mypassword')
+    const verifyBtn = wrapper.findAll('button').find(b => b.text() === 'Verify')
+    if (verifyBtn) await verifyBtn.trigger('click')
+    await new Promise(resolve => setTimeout(resolve, 0))
+    
+    // Simulate unauthenticated state
+    store.accessToken = ''
+    
+    const deleteBtn = wrapper.findAll('button').find(b => b.text() === 'Yes, Delete')
+    if (deleteBtn) await deleteBtn.trigger('click')
+    
+    await new Promise(resolve => setTimeout(resolve, 0))
+    expect(wrapper.text()).toContain('User is not authenticated.')
   })
 })
