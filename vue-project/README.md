@@ -1,38 +1,43 @@
-# vue-project
+# Frontend Vue Project
 
-This template should help get you started developing with Vue 3 in Vite.
+This is the Vue.js frontend for the application, powered by Vite.
 
-## Recommended IDE Setup
+## Prerequisites
 
-[VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+- **Node.js** version `>= 20.19.0` or `>= 22.12.0` must be installed.
 
-## Recommended Browser Setup
+## Setup Instructions
 
-- Chromium-based browsers (Chrome, Edge, Brave, etc.):
-  - [Vue.js devtools](https://chromewebstore.google.com/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd) 
-  - [Turn on Custom Object Formatter in Chrome DevTools](http://bit.ly/object-formatters)
-- Firefox:
-  - [Vue.js devtools](https://addons.mozilla.org/en-US/firefox/addon/vue-js-devtools/)
-  - [Turn on Custom Object Formatter in Firefox DevTools](https://fxdx.dev/firefox-devtools-custom-object-formatters/)
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/dvoron/frontend.git
+   ```
 
-## Customize configuration
+2. **Navigate to the project folder:**
+   ```bash
+   cd frontend/vue-project
+   ```
 
-See [Vite Configuration Reference](https://vite.dev/config/).
+3. **Install Dependencies:**
+   ```bash
+   npm install
+   ```
 
-## Project Setup
+4. **Run the Development Server:**
+   ```bash
+   npm run dev
+   ```
 
-```sh
-npm install
-```
+   The application will start on **port `5173`** by default (`http://localhost:5173`). The development server supports hot-reload for a seamless development experience.
 
-### Compile and Hot-Reload for Development
+## Build for Production
 
-```sh
-npm run dev
-```
-
-### Compile and Minify for Production
-
-```sh
+To compile and minify for production, run:
+```bash
 npm run build
 ```
+
+## Related Projects
+
+- **[Backend Project](https://github.com/dvoron/backend)** - The Spring Boot backend service.
+- **[E2E Project](https://github.com/dvoron/E2E)** - End-to-End Playwright tests.
