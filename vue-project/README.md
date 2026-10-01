@@ -51,7 +51,7 @@ npm -v
 
 2. **Navigate to the project folder:**
    ```bash
-   cd frontend/vue-project
+   cd vue-project
    ```
 
 3. **Install Dependencies:**
