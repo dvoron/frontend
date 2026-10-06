@@ -1,10 +1,11 @@
-import axios from 'axios'
+import apiClient from '@/utils/axios'
 import type { LoginUserDto } from '@/dto/LoginUserDto'
 import type { CreateUserDto } from '@/dto/CreateUserDto'
+import axios from 'axios'
 
 export async function login(dto: LoginUserDto) {
     try {
-        const response = await axios.post('/api/auth/login', {
+        const response = await apiClient.post('/api/auth/login', {
             login: dto.login,
             password: dto.password,
         })
@@ -19,7 +20,7 @@ export async function login(dto: LoginUserDto) {
 
 export async function refresh() {
     try {
-        const response = await axios.post('/api/auth/refresh', {})
+        const response = await apiClient.post('/api/auth/refresh', {})
         return [response.data, response.status]
     } catch (error) {
         if (axios.isAxiosError(error) && error.response) {
@@ -31,7 +32,7 @@ export async function refresh() {
 
 export async function register(dto: CreateUserDto) {
     try {
-        const response = await axios.post('/api/auth/register', {
+        const response = await apiClient.post('/api/auth/register', {
             username: dto.username,
             email: dto.email,
             password: dto.password,
@@ -47,7 +48,7 @@ export async function register(dto: CreateUserDto) {
 
 export async function logout(accessToken: string) {
     try {
-        await axios.post('/api/auth/logout', {}, {
+        await apiClient.post('/api/auth/logout', {}, {
             headers: { Authorization: `Bearer ${accessToken}` }
         })
     } catch (_) {
@@ -57,7 +58,7 @@ export async function logout(accessToken: string) {
 
 export async function getUserById(id: number, accessToken: string) {
     try {
-        const response = await axios.get(`/api/${id}`, {
+        const response = await apiClient.get(`/api/${id}`, {
             headers: { Authorization: `Bearer ${accessToken}` }
         })
         return [response.data, response.status]
@@ -71,7 +72,7 @@ export async function getUserById(id: number, accessToken: string) {
 
 export async function updateUser(id: number, user: any, accessToken: string) {
     try {
-        const response = await axios.put(`/api/${id}`, user, {
+        const response = await apiClient.put(`/api/${id}`, user, {
             headers: { Authorization: `Bearer ${accessToken}` }
         })
         return [response.data, response.status]
@@ -85,7 +86,7 @@ export async function updateUser(id: number, user: any, accessToken: string) {
 
 export async function deleteUser(id: number, accessToken: string) {
     try {
-        const response = await axios.delete(`/api/${id}`, {
+        const response = await apiClient.delete(`/api/${id}`, {
             headers: { Authorization: `Bearer ${accessToken}` }
         })
         return [response.data, response.status]
