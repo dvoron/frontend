@@ -1,10 +1,9 @@
+import apiClient from '@/utils/axios'
 import axios from 'axios'
 
-export async function getAllPosts(accessToken: string) {
+export async function getAllPosts() {
     try {
-        const response = await axios.get('/api/forum/posts', {
-            headers: { Authorization: `Bearer ${accessToken}` }
-        })
+        const response = await apiClient.get('/api/forum/posts')
         return [response.data, response.status]
     } catch (error) {
         if (axios.isAxiosError(error) && error.response) {
@@ -16,7 +15,7 @@ export async function getAllPosts(accessToken: string) {
 
 export async function createPost(title: string, content: string, accessToken: string) {
     try {
-        const response = await axios.post('/api/forum/posts', {
+        const response = await apiClient.post('/api/forum/posts', {
             title,
             content
         }, {
@@ -33,7 +32,7 @@ export async function createPost(title: string, content: string, accessToken: st
 
 export async function createComment(postId: number, parentCommentId: number | null, content: string, accessToken: string) {
     try {
-        const response = await axios.post('/api/forum/comments', {
+        const response = await apiClient.post('/api/forum/comments', {
             postId,
             parentCommentId,
             content
@@ -51,7 +50,7 @@ export async function createComment(postId: number, parentCommentId: number | nu
 
 export async function getUserPosts(userId: number, accessToken: string) {
     try {
-        const response = await axios.get(`/api/forum/users/${userId}/posts`, {
+        const response = await apiClient.get(`/api/forum/users/${userId}/posts`, {
             headers: { Authorization: `Bearer ${accessToken}` }
         })
         return [response.data, response.status]
@@ -65,7 +64,7 @@ export async function getUserPosts(userId: number, accessToken: string) {
 
 export async function getUserComments(userId: number, accessToken: string) {
     try {
-        const response = await axios.get(`/api/forum/users/${userId}/comments`, {
+        const response = await apiClient.get(`/api/forum/users/${userId}/comments`, {
             headers: { Authorization: `Bearer ${accessToken}` }
         })
         return [response.data, response.status]

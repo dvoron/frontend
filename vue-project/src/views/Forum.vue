@@ -34,8 +34,7 @@ const getCurrentUsername = () => {
 const posts = ref<Post[]>([])
 
 const loadPosts = async () => {
-  if (!authStore.accessToken) return
-  const [data, status] = await getAllPosts(authStore.accessToken)
+  const [data, status] = await getAllPosts()
   if (status === 200) {
     posts.value = data
   }

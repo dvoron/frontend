@@ -2,8 +2,21 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import axios from 'axios'
 import { login, register, logout, getUserById, updateUser, deleteUser, refresh } from '@/services/UserService'
 
-vi.mock('axios')
-axios.isAxiosError = vi.fn((err: any) => !!err?.isAxiosError) as any
+vi.mock('axios', () => {
+  const mockAxios = {
+    get: vi.fn(),
+    post: vi.fn(),
+    put: vi.fn(),
+    delete: vi.fn(),
+    isAxiosError: vi.fn((err: any) => !!err?.isAxiosError),
+    create: vi.fn(function(this: any) { return this; }),
+    interceptors: {
+      request: { use: vi.fn() },
+      response: { use: vi.fn() }
+    }
+  }
+  return { default: mockAxios }
+})
 
 describe('UserService', () => {
   beforeEach(() => {

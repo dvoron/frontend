@@ -41,6 +41,16 @@ const app = createApp(App)
 const pinia = createPinia()
 app.use(pinia)
 
+import logger from '@/utils/logger';
+
+app.config.errorHandler = (err, instance, info) => {
+    logger.error('Vue Error:', err, info);
+};
+
+window.addEventListener('unhandledrejection', (event) => {
+    logger.error('Unhandled Promise Rejection:', event.reason);
+});
+
 const auth = useAuthStore()
 await auth.tryRefresh()
 
