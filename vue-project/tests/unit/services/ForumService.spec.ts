@@ -9,7 +9,7 @@ vi.mock('axios', () => {
     put: vi.fn(),
     delete: vi.fn(),
     isAxiosError: vi.fn((err: any) => !!err?.isAxiosError),
-    create: vi.fn(function() { return this; }),
+    create: vi.fn(function(this: any) { return this; }),
     interceptors: {
       request: { use: vi.fn() },
       response: { use: vi.fn() }
