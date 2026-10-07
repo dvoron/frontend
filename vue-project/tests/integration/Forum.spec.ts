@@ -151,12 +151,14 @@ describe('Forum.vue Integration', () => {
     expect(wrapper.find('.add-comment p').text()).toContain('Comment as Guest')
   })
 
-  it('does not load posts if not logged in', async () => {
+  it('loads posts even if not logged in', async () => {
     const getPostsMock = vi.fn()
     server.use(
       http.get('/api/forum/posts', () => {
         getPostsMock()
-        return HttpResponse.json([])
+        return HttpResponse.json([
+          { id: 1, title: 'Public Post', content: 'Public content', author: 'user1', timestamp: '1h ago', comments: [] }
+        ])
       })
     )
 
@@ -166,7 +168,10 @@ describe('Forum.vue Integration', () => {
     const wrapper = mountComponent()
     await new Promise(resolve => setTimeout(resolve, 50))
     
-    expect(getPostsMock).not.toHaveBeenCalled()
+    expect(getPostsMock).toHaveBeenCalled()
+    const posts = wrapper.findAll('.post')
+    expect(posts.length).toBe(1)
+    expect(posts[0].text()).toContain('Public Post')
   })
 
   it('createPost early returns on invalid inputs or missing token', async () => {

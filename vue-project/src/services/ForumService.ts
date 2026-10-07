@@ -1,11 +1,9 @@
 import apiClient from '@/utils/axios'
 import axios from 'axios'
 
-export async function getAllPosts(accessToken: string) {
+export async function getAllPosts() {
     try {
-        const response = await apiClient.get('/api/forum/posts', {
-            headers: { Authorization: `Bearer ${accessToken}` }
-        })
+        const response = await apiClient.get('/api/forum/posts')
         return [response.data, response.status]
     } catch (error) {
         if (axios.isAxiosError(error) && error.response) {

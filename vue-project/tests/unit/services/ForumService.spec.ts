@@ -2,8 +2,21 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import axios from 'axios'
 import { getAllPosts, createPost, createComment, getUserPosts, getUserComments } from '@/services/ForumService'
 
-vi.mock('axios')
-axios.isAxiosError = vi.fn((err: any) => !!err?.isAxiosError) as any
+vi.mock('axios', () => {
+  const mockAxios = {
+    get: vi.fn(),
+    post: vi.fn(),
+    put: vi.fn(),
+    delete: vi.fn(),
+    isAxiosError: vi.fn((err: any) => !!err?.isAxiosError),
+    create: vi.fn(function() { return this; }),
+    interceptors: {
+      request: { use: vi.fn() },
+      response: { use: vi.fn() }
+    }
+  }
+  return { default: mockAxios }
+})
 
 describe('ForumService', () => {
   beforeEach(() => {
@@ -15,11 +28,9 @@ describe('ForumService', () => {
       const mockData = [{ id: 1, title: 'Post 1' }]
       vi.mocked(axios.get).mockResolvedValueOnce({ data: mockData, status: 200 } as any)
 
-      const [data, status] = await getAllPosts('token123')
+      const [data, status] = await getAllPosts()
 
-      expect(axios.get).toHaveBeenCalledWith('/api/forum/posts', {
-        headers: { Authorization: 'Bearer token123' }
-      })
+      expect(axios.get).toHaveBeenCalledWith('/api/forum/posts')
       expect(data).toEqual(mockData)
       expect(status).toBe(200)
     })
@@ -28,7 +39,7 @@ describe('ForumService', () => {
       const mockError = { isAxiosError: true, response: { data: { message: 'Error' }, status: 500 } }
       vi.mocked(axios.get).mockRejectedValueOnce(mockError as any)
 
-      const [data, status] = await getAllPosts('token123')
+      const [data, status] = await getAllPosts()
 
       expect(data).toEqual(mockError.response.data)
       expect(status).toBe(500)
@@ -37,7 +48,7 @@ describe('ForumService', () => {
     it('should handle get all posts network error', async () => {
       vi.mocked(axios.get).mockRejectedValueOnce(new Error('Network Error'))
 
-      const [data, status] = await getAllPosts('token123')
+      const [data, status] = await getAllPosts()
 
       expect(data).toEqual({ message: 'Network error occurred' })
       expect(status).toBe(503)
