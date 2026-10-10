@@ -9,12 +9,16 @@ This is the Vue.js frontend for the application, powered by Vite.
 
 ## Setup Instructions
 
-2. **Navigate to the project folder:**
+1. **Navigate to the project folder:**
    ```bash
    cd vue-project
    ```
 
-4. **Run the Development Server:**
+2. **Install Dependencies**
+    ```bash
+    npm install
+   ```
+3. **Run the Development Server:**
    ```bash
    npm run dev
    ```
