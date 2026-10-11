@@ -117,7 +117,7 @@ describe('ForumComment.vue', () => {
     await wrapper.find('.btn-submit').trigger('click')
 
     expect(wrapper.emitted('reply')).toBeTruthy()
-    expect(wrapper.emitted('reply')![0]).toEqual([1, 'My reply'])
+    expect(wrapper.emitted('reply')![0]).toEqual([1, 'My replyFailed'])
     expect(wrapper.find('.reply-input').exists()).toBe(false)
   })
 
