@@ -65,6 +65,12 @@ const handleSave = async () => {
   errorMessage.value = ''
   successMessage.value = ''
 
+  if (user.value.username.includes('@')) {
+    errorMessage.value = "Username cannot contain '@'"
+    isSaving.value = false
+    return
+  }
+
   const userId = authStore.userId
   if (!userId || !authStore.accessToken) {
     errorMessage.value = 'User is not authenticated.'

@@ -18,6 +18,11 @@ async function submit() {
   emailError.value = ""
   generalError.value = ""
 
+  if (registerForm.username.includes("@")) {
+    usernameError.value = "Username cannot contain '@'"
+    return
+  }
+
   const [data, status] = await register(registerForm)
 
   if (status === 200) {
