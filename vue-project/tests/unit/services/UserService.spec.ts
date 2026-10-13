@@ -151,7 +151,7 @@ describe('UserService', () => {
 
       const [data, status] = await getUserById(1, 'token123')
 
-      expect(axios.get).toHaveBeenCalledWith('/api/1', {
+        expect(axios.get).toHaveBeenCalledWith('/api/users/1', {
         headers: { Authorization: 'Bearer token123' }
       })
       expect(data).toEqual(mockData)
@@ -185,7 +185,7 @@ describe('UserService', () => {
 
       const [data, status] = await updateUser(1, { name: 'updated' }, 'token123')
 
-      expect(axios.put).toHaveBeenCalledWith('/api/1', { name: 'updated' }, {
+        expect(axios.put).toHaveBeenCalledWith('/api/users/1', { name: 'updated' }, {
         headers: { Authorization: 'Bearer token123' }
       })
       expect(data).toEqual(mockData)
@@ -218,7 +218,7 @@ describe('UserService', () => {
 
       const [data, status] = await deleteUser(1, 'token123')
 
-      expect(axios.delete).toHaveBeenCalledWith('/api/1', {
+        expect(axios.delete).toHaveBeenCalledWith('/api/users/1', {
         headers: { Authorization: 'Bearer token123' }
       })
       expect(data).toBeNull()

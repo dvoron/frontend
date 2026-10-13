@@ -58,7 +58,7 @@ export async function logout(accessToken: string) {
 
 export async function getUserById(id: number, accessToken: string) {
     try {
-        const response = await apiClient.get(`/api/${id}`, {
+        const response = await apiClient.get(`/api/users/${id}`, {
             headers: { Authorization: `Bearer ${accessToken}` }
         })
         return [response.data, response.status]
@@ -72,7 +72,7 @@ export async function getUserById(id: number, accessToken: string) {
 
 export async function updateUser(id: number, user: any, accessToken: string) {
     try {
-        const response = await apiClient.put(`/api/${id}`, user, {
+        const response = await apiClient.put(`/api/users/${id}`, user, {
             headers: { Authorization: `Bearer ${accessToken}` }
         })
         return [response.data, response.status]
@@ -86,7 +86,7 @@ export async function updateUser(id: number, user: any, accessToken: string) {
 
 export async function deleteUser(id: number, accessToken: string) {
     try {
-        const response = await apiClient.delete(`/api/${id}`, {
+        const response = await apiClient.delete(`/api/users/${id}`, {
             headers: { Authorization: `Bearer ${accessToken}` }
         })
         return [response.data, response.status]

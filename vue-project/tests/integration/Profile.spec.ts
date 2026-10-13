@@ -40,7 +40,7 @@ describe('Profile.vue Integration', () => {
 
   it('Load Profile & Activity', async () => {
     server.use(
-      http.get('/api/1', () => {
+      http.get('/api/users/1', () => {
         return HttpResponse.json({ id: 1, username: 'testuser', email: 'test@example.com' })
       }),
       http.get('/api/forum/users/1/posts', () => {
@@ -80,7 +80,7 @@ describe('Profile.vue Integration', () => {
 
   it('uses data.name if data.username is missing', async () => {
     server.use(
-      http.get('/api/1', () => {
+      http.get('/api/users/1', () => {
         return HttpResponse.json({ id: 1, name: 'fallbackname', email: 'fallback@example.com' })
       }),
       http.get('/api/forum/users/1/posts', () => HttpResponse.json([])),
@@ -96,7 +96,7 @@ describe('Profile.vue Integration', () => {
 
   it('shows error message when failing to load profile data', async () => {
     server.use(
-      http.get('/api/1', () => {
+      http.get('/api/users/1', () => {
         return new HttpResponse(null, { status: 500 })
       }),
       http.get('/api/forum/users/1/posts', () => HttpResponse.json([])),
@@ -140,7 +140,7 @@ describe('Profile.vue Integration', () => {
 
   it('ProfileActivityList button filtering (posts, comments, both)', async () => {
     server.use(
-      http.get('/api/1', () => {
+      http.get('/api/users/1', () => {
         return HttpResponse.json({ id: 1, username: 'testuser', email: 'test@example.com' })
       }),
       http.get('/api/forum/users/1/posts', () => {
@@ -192,12 +192,12 @@ describe('Profile.vue Integration', () => {
 
   it('Update Profile', async () => {
     server.use(
-      http.get('/api/1', () => {
+      http.get('/api/users/1', () => {
         return HttpResponse.json({ id: 1, username: 'testuser', email: 'test@example.com' })
       }),
       http.get('/api/forum/users/1/posts', () => HttpResponse.json([])),
       http.get('/api/forum/users/1/comments', () => HttpResponse.json([])),
-      http.put('/api/1', async ({ request }) => {
+      http.put('/api/users/1', async ({ request }) => {
         const data = (await request.json()) as Record<string, any>
         return HttpResponse.json({ id: 1, ...data })
       })
@@ -227,12 +227,12 @@ describe('Profile.vue Integration', () => {
 
   it('Delete Account', async () => {
     server.use(
-      http.get('/api/1', () => {
+      http.get('/api/users/1', () => {
         return HttpResponse.json({ id: 1, username: 'testuser', email: 'test@example.com' })
       }),
       http.get('/api/forum/users/1/posts', () => HttpResponse.json([])),
       http.get('/api/forum/users/1/comments', () => HttpResponse.json([])),
-      http.delete('/api/1', () => {
+      http.delete('/api/users/1', () => {
         return new HttpResponse(null, { status: 200 })
       })
     )

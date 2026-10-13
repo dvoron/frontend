@@ -32,15 +32,14 @@ export const handlers = [
   }),
 
   // User
-  http.get('/api/:id', ({ params }) => {
-    if (params.id === 'auth') return new HttpResponse(null, { status: 404 }) // avoid conflicting with /api/auth
+  http.get('/api/users/:id', ({ params }) => {
     return HttpResponse.json({ id: params.id, username: 'mockuser', email: 'mock@example.com' })
   }),
-  http.put('/api/:id', async ({ request, params }) => {
+  http.put('/api/users/:id', async ({ request, params }) => {
     const data = (await request.json()) as Record<string, any>
     return HttpResponse.json({ id: params.id, ...data })
   }),
-  http.delete('/api/:id', () => {
+  http.delete('/api/users/:id', () => {
     return new HttpResponse(null, { status: 200 })
   }),
 ]
