@@ -1,9 +1,9 @@
 import apiClient from '@/utils/axios'
 import axios from 'axios'
 
-export async function getAllPosts() {
+export async function getAllPosts(page: number = 0, size: number = 10) {
     try {
-        const response = await apiClient.get('/api/forum/posts')
+        const response = await apiClient.get(`/api/forum/posts?page=${page}&size=${size}`)
         return [response.data, response.status]
     } catch (error) {
         if (axios.isAxiosError(error) && error.response) {

@@ -32,11 +32,25 @@ const getCurrentUsername = () => {
 
 // State for posts
 const posts = ref<Post[]>([])
+const currentPage = ref(0)
+const totalPages = ref(1)
 
-const loadPosts = async () => {
-  const [data, status] = await getAllPosts()
+const loadPosts = async (loadMore = false) => {
+  const [data, status] = await getAllPosts(currentPage.value)
   if (status === 200) {
-    posts.value = data
+    if (loadMore) {
+      posts.value.push(...data.content)
+    } else {
+      posts.value = data.content
+    }
+    totalPages.value = data.totalPages
+  }
+}
+
+const loadMorePosts = () => {
+  if (currentPage.value < totalPages.value - 1) {
+    currentPage.value++
+    loadPosts(true)
   }
 }
 
@@ -182,10 +196,20 @@ const handleReply = async (postId: number, parentCommentId: number, content: str
         </div>
       </div>
     </div>
+    
+    <div v-if="currentPage < totalPages - 1" class="load-more-container">
+      <button class="btn-primary" @click="loadMorePosts">Load More</button>
+    </div>
   </div>
 </template>
 
 <style scoped>
+.load-more-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
 .forum-container {
   max-width: 800px;
   margin: 0 auto;

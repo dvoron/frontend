@@ -30,7 +30,7 @@ describe('ForumService', () => {
 
       const [data, status] = await getAllPosts()
 
-      expect(axios.get).toHaveBeenCalledWith('/api/forum/posts')
+      expect(axios.get).toHaveBeenCalledWith('/api/forum/posts?page=0&size=10')
       expect(data).toEqual(mockData)
       expect(status).toBe(200)
     })
