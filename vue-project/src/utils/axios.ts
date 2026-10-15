@@ -1,5 +1,6 @@
 import axios from 'axios';
 import logger from '@/utils/logger';
+import { useAuthStore } from '@/stores/auth';
 
 const apiClient = axios.create({
     // baseURL: import.meta.env.VITE_API_BASE_URL || '',
@@ -21,9 +22,40 @@ apiClient.interceptors.response.use(
         logger.debug(`API Response: ${response.status} ${response.config.url}`);
         return response;
     },
-    (error) => {
+    async (error) => {
+        const originalRequest = error.config;
+
         if (error.response) {
             logger.warn(`API Response Error: ${error.response.status} ${error.config.url}`, error.response.data);
+            
+            if (error.response.status === 401 && !originalRequest._retry && originalRequest.url !== '/api/auth/refresh') {
+                originalRequest._retry = true;
+                
+                try {
+                    const auth = useAuthStore();
+                    const refreshed = await auth.tryRefresh();
+                    
+                    if (refreshed) {
+                        if (originalRequest.headers) {
+                            if (typeof originalRequest.headers.set === 'function') {
+                                originalRequest.headers.set('Authorization', `Bearer ${auth.accessToken}`);
+                            } else {
+                                originalRequest.headers.Authorization = `Bearer ${auth.accessToken}`;
+                            }
+                        }
+                        return apiClient(originalRequest);
+                    } else {
+                        auth.clearTokens();
+                        const { default: router } = await import('@/main');
+                        router.push({ name: 'login' });
+                    }
+                } catch (refreshError) {
+                    const auth = useAuthStore();
+                    auth.clearTokens();
+                    const { default: router } = await import('@/main');
+                    router.push({ name: 'login' });
+                }
+            }
         } else if (error.request) {
             logger.error('API No Response:', error.request);
         } else {
