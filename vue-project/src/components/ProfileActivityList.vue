@@ -72,10 +72,8 @@ const displayedActivity = computed(() => {
     activity = [...activity, ...mappedComments]
   }
   
-  // Sort by timestamp if possible, otherwise just leave as is or sort by originalId
-  // Assuming timestamp is a string, we might not be able to sort perfectly without parsing.
-  // We'll sort by originalId descending as a proxy for recency.
-  return activity.sort((a, b) => b.originalId - a.originalId)
+  // Sort by timestamp in descending order (newest first)
+  return activity.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
 })
 </script>
 
