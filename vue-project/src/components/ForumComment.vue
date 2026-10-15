@@ -9,21 +9,31 @@ const props = defineProps<{
   comment: Comment
 }>()
 
-const emit = defineEmits(['reply'])
+const emit = defineEmits<{
+  (e: 'reply', parentId: number, content: string, onComplete: (success: boolean) => void): void
+}>()
 
 const showReplyInput = ref(false)
 const replyContent = ref('')
+const replyError = ref('')
 
 const submitReply = () => {
   if (!replyContent.value.trim()) return;
   if (replyContent.value.length > 1000) return;
-  emit('reply', props.comment.id, replyContent.value)
-  replyContent.value = ''
-  showReplyInput.value = false
+  
+  replyError.value = ''
+  emit('reply', props.comment.id, replyContent.value, (success: boolean) => {
+    if (success) {
+      replyContent.value = ''
+      showReplyInput.value = false
+    } else {
+      replyError.value = 'Failed to post reply. Please try again.'
+    }
+  })
 }
 
-const handleChildReply = (parentId: number, content: string) => {
-  emit('reply', parentId, content)
+const handleChildReply = (parentId: number, content: string, onComplete: (success: boolean) => void) => {
+  emit('reply', parentId, content, onComplete)
 }
 </script>
 
@@ -46,6 +56,7 @@ const handleChildReply = (parentId: number, content: string) => {
         <textarea v-model="replyContent" placeholder="Write a reply..." rows="2"></textarea>
         <span class="char-counter" :class="{ 'error': replyContent.length > 1000 }">{{ replyContent.length }}/1000</span>
       </div>
+      <div v-if="replyError" class="error-message">{{ replyError }}</div>
       <div class="reply-actions">
         <button class="btn-submit" @click="submitReply" :disabled="replyContent.length > 1000">Submit</button>
         <button class="btn-cancel" @click="showReplyInput = false">Cancel</button>
@@ -144,6 +155,12 @@ textarea:focus {
 
 .char-counter.error {
   color: #ff4d4f;
+}
+
+.error-message {
+  color: #ff4d4f;
+  font-size: 0.85rem;
+  margin-bottom: 0.5rem;
 }
 
 .reply-actions {

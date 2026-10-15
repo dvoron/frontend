@@ -21,6 +21,7 @@ export interface Post {
   comments: Comment[];
   showComments?: boolean;
   newCommentContent?: string;
+  commentError?: string;
 }
 
 const authStore = useAuthStore()
@@ -63,12 +64,14 @@ const newPost = ref({
   title: '',
   content: ''
 })
+const createPostError = ref('')
 
 const createPost = async () => {
   if (!authStore.accessToken) return
   if (!newPost.value.title.trim()) return
   if (newPost.value.title.length > 255 || (newPost.value.content || '').length > 2000) return
 
+  createPostError.value = ''
   const [data, status] = await apiCreatePost(newPost.value.title, newPost.value.content, authStore.accessToken)
   
   if (status === 200) {
@@ -76,6 +79,8 @@ const createPost = async () => {
     newPost.value.title = ''
     newPost.value.content = ''
     showNewPostForm.value = false
+  } else {
+    createPostError.value = 'Failed to create post. Please try again.'
   }
 }
 
@@ -84,11 +89,14 @@ const addComment = async (post: Post) => {
   if (!post.newCommentContent?.trim()) return
   if ((post.newCommentContent || '').length > 1000) return
 
+  post.commentError = ''
   const [data, status] = await apiCreateComment(post.id, null, post.newCommentContent, authStore.accessToken)
   
   if (status === 200) {
     post.comments.push(data)
     post.newCommentContent = ''
+  } else {
+    post.commentError = 'Failed to add comment. Please try again.'
   }
 }
 
@@ -109,14 +117,20 @@ const addReplyToComment = (commentsList: Comment[], parentId: number, newComment
   return false
 }
 
-const handleReply = async (postId: number, parentCommentId: number, content: string) => {
-  if (!authStore.accessToken) return
+const handleReply = async (postId: number, parentCommentId: number, content: string, onComplete?: (success: boolean) => void) => {
+  if (!authStore.accessToken) {
+    if (onComplete) onComplete(false)
+    return
+  }
   const [data, status] = await apiCreateComment(postId, parentCommentId, content, authStore.accessToken)
   if (status === 200) {
     const post = posts.value.find(p => p.id === postId)
     if (post) {
       addReplyToComment(post.comments, parentCommentId, data)
     }
+    if (onComplete) onComplete(true)
+  } else {
+    if (onComplete) onComplete(false)
   }
 }
 </script>
@@ -141,6 +155,7 @@ const handleReply = async (postId: number, parentCommentId: number, content: str
         <textarea v-model="newPost.content" placeholder="Text (optional)" class="form-input" rows="4"></textarea>
         <span class="char-counter" :class="{ 'error': newPost.content.length > 2000 }">{{ newPost.content.length }}/2000</span>
       </div>
+      <div v-if="createPostError" class="error-message">{{ createPostError }}</div>
       <div class="form-actions">
         <button class="btn-primary" @click="createPost" :disabled="newPost.title.length > 255 || newPost.content.length > 2000">Post</button>
       </div>
@@ -173,6 +188,7 @@ const handleReply = async (postId: number, parentCommentId: number, content: str
               <textarea v-model="post.newCommentContent" placeholder="What are your thoughts?" rows="3" class="form-input"></textarea>
               <span class="char-counter" :class="{ 'error': (post.newCommentContent || '').length > 1000 }">{{ (post.newCommentContent || '').length }}/1000</span>
             </div>
+            <div v-if="post.commentError" class="error-message">{{ post.commentError }}</div>
             <div class="comment-btn-container">
                <button class="btn-primary" @click="addComment(post)" :disabled="(post.newCommentContent || '').length > 1000">Comment</button>
             </div>
@@ -186,7 +202,7 @@ const handleReply = async (postId: number, parentCommentId: number, content: str
                v-for="comment in post.comments" 
                :key="comment.id" 
                :comment="comment" 
-               @reply="(parentId, content) => handleReply(post.id, parentId, content)" 
+               @reply="(parentId, content, onComplete) => handleReply(post.id, parentId, content, onComplete)" 
              />
              
              <div v-if="post.comments.length === 0" class="no-comments">
@@ -284,6 +300,12 @@ const handleReply = async (postId: number, parentCommentId: number, content: str
 
 .char-counter.error {
   color: #ff4d4f;
+}
+
+.error-message {
+  color: #ff4d4f;
+  font-size: 0.85rem;
+  margin-bottom: 12px;
 }
 
 .form-actions {
