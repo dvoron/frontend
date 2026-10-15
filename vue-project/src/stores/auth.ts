@@ -12,7 +12,8 @@ export const useAuthStore = defineStore('auth', {
         userId: (state) => {
             if (!state.accessToken) return null;
             try {
-                return jwtDecode<{ sub?: number, username?: string }>(state.accessToken).sub;
+                const decoded = jwtDecode<{ sub?: string | number, username?: string }>(state.accessToken);
+                return decoded.sub ? Number(decoded.sub) : null;
             } catch (e) {
                 return null;
             }
@@ -20,7 +21,7 @@ export const useAuthStore = defineStore('auth', {
         username: (state) => {
             if (!state.accessToken) return null;
             try {
-                return jwtDecode<{ sub?: number, username?: string }>(state.accessToken).username;
+                return jwtDecode<{ sub?: string | number, username?: string }>(state.accessToken).username;
             } catch (e) {
                 return null;
             }
