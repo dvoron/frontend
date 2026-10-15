@@ -54,9 +54,6 @@ window.addEventListener('unhandledrejection', (event) => {
 const auth = useAuthStore()
 await auth.tryRefresh()
 
-app.use(router)
-app.mount('#app')
-
 router.beforeEach((to) => {
     const auth = useAuthStore()
 
@@ -68,5 +65,8 @@ router.beforeEach((to) => {
 
     return true
 })
+
+app.use(router)
+app.mount('#app')
 
 export default router
