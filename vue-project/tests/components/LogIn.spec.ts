@@ -69,7 +69,7 @@ describe('LogIn.vue', () => {
   })
 
   it('handles successful login', async () => {
-    vi.mocked(login).mockResolvedValueOnce([{ accessToken: 'token', refreshToken: 'refresh' }, 200])
+    vi.mocked(login).mockResolvedValueOnce({ data: { accessToken: 'token', refreshToken: 'refresh' }, status: 200, ok: true } as any)
     
     const wrapper = mountComponent()
     await wrapper.find('input[placeholder="Enter username or email"]').setValue('testuser')
@@ -84,7 +84,7 @@ describe('LogIn.vue', () => {
   })
 
   it('handles login error (401)', async () => {
-    vi.mocked(login).mockResolvedValueOnce([{}, 401])
+    vi.mocked(login).mockResolvedValueOnce({ data: {}, status: 401, ok: false } as any)
     
     const wrapper = mountComponent()
     await wrapper.find('form').trigger('submit.prevent')
@@ -94,7 +94,7 @@ describe('LogIn.vue', () => {
   })
 
   it('handles login error (500)', async () => {
-    vi.mocked(login).mockResolvedValueOnce([{}, 500])
+    vi.mocked(login).mockResolvedValueOnce({ data: {}, status: 500, ok: false } as any)
     
     const wrapper = mountComponent()
     await wrapper.find('form').trigger('submit.prevent')

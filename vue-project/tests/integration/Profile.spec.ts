@@ -14,6 +14,12 @@ vi.mock('vue-router', () => ({
   useRouter: vi.fn()
 }))
 
+vi.mock('@/main', () => ({
+  default: {
+    push: vi.fn()
+  }
+}))
+
 describe('Profile.vue Integration', () => {
   const mockPush = vi.fn()
 
@@ -260,7 +266,7 @@ describe('Profile.vue Integration', () => {
     // Enter password and verify
     await wrapper.find('input#deletePassword').setValue('password123')
     const verifyBtns = wrapper.findAll('button')
-    const verifyBtn = verifyBtns.find(b => b.text() === 'Verify')
+    const verifyBtn = verifyBtns.find(b => b.text() === 'Continue')
     await verifyBtn!.trigger('click')
     
     await new Promise(resolve => setTimeout(resolve, 50))
