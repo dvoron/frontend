@@ -10,11 +10,14 @@ const usernameError = ref("")
 const emailError = ref("")
 const passwordError = ref("")
 const generalError = ref("")
+const isPending = ref(false)
 
 const authStore = useAuthStore()
 const router = useRouter()
 
 async function submit() {
+  if (isPending.value) return
+  isPending.value = true
   usernameError.value = ""
   emailError.value = ""
   passwordError.value = ""
@@ -41,24 +44,29 @@ async function submit() {
   }
 
   if (hasError) {
+    isPending.value = false
     return
   }
 
-  const [data, status] = await register(registerForm)
+  try {
+    const [data, status] = await register(registerForm)
 
-  if (status === 200) {
-    authStore.setTokens(data.accessToken)
-    router.push({ name: "home" })
-  } else if (status === 409) {
-    if (data.code === "EMAIL_ALREADY_TAKEN") {
-      emailError.value = data.message
-    } else if (data.code === "USERNAME_ALREADY_TAKEN") {
-      usernameError.value = data.message
+    if (status === 200) {
+      authStore.setTokens(data.accessToken)
+      router.push({ name: "home" })
+    } else if (status === 409) {
+      if (data.code === "EMAIL_ALREADY_TAKEN") {
+        emailError.value = data.message
+      } else if (data.code === "USERNAME_ALREADY_TAKEN") {
+        usernameError.value = data.message
+      } else {
+        generalError.value = data.message || "Something went wrong. Please try again."
+      }
     } else {
-      generalError.value = data.message || "Something went wrong. Please try again."
+      generalError.value = "Something went wrong. Please try again."
     }
-  } else {
-    generalError.value = "Something went wrong. Please try again."
+  } finally {
+    isPending.value = false
   }
 }
 </script>
@@ -104,9 +112,10 @@ async function submit() {
 
       <button
         type="submit"
-        class="bg-teal-500 hover:bg-teal-600 text-white font-semibold py-2 rounded"
+        :disabled="isPending"
+        class="bg-teal-500 hover:bg-teal-600 text-white font-semibold py-2 rounded disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        Create Account
+        {{ isPending ? 'Creating Account...' : 'Create Account' }}
       </button>
     </form>
 

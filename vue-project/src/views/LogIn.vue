@@ -7,22 +7,30 @@ import { useRouter } from "vue-router"
 
 const loginFormDto = reactive<LoginUserDto>(createEmptyLoginUserDto())
 const errorMessage = ref("")
-let passwordVisibilityType = ref("password")
+const passwordVisibilityType = ref("password")
+const isPending = ref(false)
 
 const authStore = useAuthStore()
 const router = useRouter()
 
 async function onSignIn() {
+  if (isPending.value) return
+  isPending.value = true
   errorMessage.value = ""
-  const [data, status] = await login(loginFormDto)
+  
+  try {
+    const [data, status] = await login(loginFormDto)
 
-  if (status === 200) {
-    authStore.setTokens(data.accessToken)
-    router.push({ name: "home" })
-  } else if (status === 401) {
-    errorMessage.value = "Username or password is incorrect"
-  } else {
-    errorMessage.value = "Something went wrong. Please try again."
+    if (status === 200) {
+      authStore.setTokens(data.accessToken)
+      router.push({ name: "home" })
+    } else if (status === 401) {
+      errorMessage.value = "Username or password is incorrect"
+    } else {
+      errorMessage.value = "Something went wrong. Please try again."
+    }
+  } finally {
+    isPending.value = false
   }
 }
 
@@ -63,9 +71,10 @@ function changePasswordVisibility() {
 
       <button
         type="submit"
-        class="bg-teal-500 hover:bg-teal-600 text-white font-semibold py-2 rounded"
+        :disabled="isPending"
+        class="bg-teal-500 hover:bg-teal-600 text-white font-semibold py-2 rounded disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        Sign In
+        {{ isPending ? 'Signing In...' : 'Sign In' }}
       </button>
     </form>
 

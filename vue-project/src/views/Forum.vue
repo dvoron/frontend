@@ -68,23 +68,31 @@ const newPost = ref({
   content: ''
 })
 const createPostError = ref('')
+const isCreatingPost = ref(false)
 
 const createPost = async () => {
+  if (isCreatingPost.value) return
   if (!authStore.accessToken) return
   if (!newPost.value.title.trim()) return
   if (newPost.value.title.length > 255 || (newPost.value.content || '').length > 2000) return
 
+  isCreatingPost.value = true
   createPostError.value = ''
-  const [data, status] = await apiCreatePost(newPost.value.title, newPost.value.content, authStore.accessToken)
   
-  if (status >= 200 && status < 300) {
-    data.comments = data.comments || []
-    posts.value.unshift(data)
-    newPost.value.title = ''
-    newPost.value.content = ''
-    showNewPostForm.value = false
-  } else {
-    createPostError.value = 'Failed to create post. Please try again.'
+  try {
+    const [data, status] = await apiCreatePost(newPost.value.title, newPost.value.content, authStore.accessToken)
+    
+    if (status >= 200 && status < 300) {
+      data.comments = data.comments || []
+      posts.value.unshift(data)
+      newPost.value.title = ''
+      newPost.value.content = ''
+      showNewPostForm.value = false
+    } else {
+      createPostError.value = 'Failed to create post. Please try again.'
+    }
+  } finally {
+    isCreatingPost.value = false
   }
 }
 
@@ -161,7 +169,9 @@ const handleReply = async (postId: number, parentCommentId: number, content: str
       </div>
       <div v-if="createPostError" class="error-message">{{ createPostError }}</div>
       <div class="form-actions">
-        <button class="btn-primary" @click="createPost" :disabled="newPost.title.length > 255 || newPost.content.length > 2000">Post</button>
+        <button class="btn-primary" @click="createPost" :disabled="isCreatingPost || newPost.title.length > 255 || newPost.content.length > 2000">
+          {{ isCreatingPost ? 'Posting...' : 'Post' }}
+        </button>
       </div>
     </div>
 
