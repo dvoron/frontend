@@ -38,7 +38,7 @@ const totalPages = ref(1)
 
 const loadPosts = async (loadMore = false) => {
   const [data, status] = await getAllPosts(currentPage.value)
-  if (status === 200) {
+  if (status >= 200 && status < 300) {
     if (loadMore) {
       posts.value.push(...data.content)
     } else {
@@ -74,7 +74,7 @@ const createPost = async () => {
   createPostError.value = ''
   const [data, status] = await apiCreatePost(newPost.value.title, newPost.value.content, authStore.accessToken)
   
-  if (status === 200) {
+  if (status >= 200 && status < 300) {
     posts.value.unshift(data)
     newPost.value.title = ''
     newPost.value.content = ''
@@ -92,7 +92,7 @@ const addComment = async (post: Post) => {
   post.commentError = ''
   const [data, status] = await apiCreateComment(post.id, null, post.newCommentContent, authStore.accessToken)
   
-  if (status === 200) {
+  if (status >= 200 && status < 300) {
     post.comments.push(data)
     post.newCommentContent = ''
   } else {
@@ -123,7 +123,7 @@ const handleReply = async (postId: number, parentCommentId: number, content: str
     return
   }
   const [data, status] = await apiCreateComment(postId, parentCommentId, content, authStore.accessToken)
-  if (status === 200) {
+  if (status >= 200 && status < 300) {
     const post = posts.value.find(p => p.id === postId)
     if (post) {
       addReplyToComment(post.comments, parentCommentId, data)
