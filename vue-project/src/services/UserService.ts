@@ -84,10 +84,11 @@ export async function updateUser(id: number, user: any, accessToken: string) {
     }
 }
 
-export async function deleteUser(id: number, accessToken: string) {
+export async function deleteUser(id: number, accessToken: string, password?: string) {
     try {
         const response = await apiClient.delete(`/api/users/${id}`, {
-            headers: { Authorization: `Bearer ${accessToken}` }
+            headers: { Authorization: `Bearer ${accessToken}` },
+            data: { password }
         })
         return [response.data, response.status]
     } catch (error) {

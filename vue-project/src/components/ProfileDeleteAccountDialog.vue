@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useAuthStore } from '@/stores/auth'
-import { login, deleteUser } from '@/services/UserService'
+import { deleteUser } from '@/services/UserService'
 import { useRouter } from 'vue-router'
 
 const props = defineProps({
@@ -49,19 +49,7 @@ const verifyDeletePassword = async () => {
     return
   }
 
-  isDeleting.value = true
   deleteError.value = ''
-  
-  // Verify password using the login endpoint
-  const [loginData, loginStatus] = await login({ login: props.email, password: deletePassword.value })
-  
-  isDeleting.value = false
-  
-  if (loginStatus !== 200) {
-    deleteError.value = 'Incorrect password.'
-    return
-  }
-
   deleteState.value = 'confirm'
 }
 
@@ -75,7 +63,7 @@ const confirmDeleteAccount = async () => {
     return
   }
   
-  const [data, status] = await deleteUser(authStore.userId, authStore.accessToken)
+  const [data, status] = await deleteUser(authStore.userId, authStore.accessToken, deletePassword.value)
   
   isDeleting.value = false
   
@@ -84,6 +72,9 @@ const confirmDeleteAccount = async () => {
     router.push({ name: 'login' })
   } else {
     deleteError.value = data?.message || 'Failed to delete account.'
+    if (status === 400 && data?.message === 'Invalid password') {
+      deleteState.value = 'password'
+    }
   }
 }
 </script>
@@ -118,7 +109,7 @@ const confirmDeleteAccount = async () => {
           <div class="mt-2 flex items-center space-x-2">
             <input type="password" id="deletePassword" v-model="deletePassword" @keyup.enter="verifyDeletePassword" class="block w-full sm:max-w-xs shadow-sm focus:ring-red-500 focus:border-red-500 sm:text-sm border-gray-300 rounded-md p-2 border" placeholder="Password" />
             <button type="button" @click="verifyDeletePassword" :disabled="isDeleting" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50">
-              {{ isDeleting ? 'Checking...' : 'Verify' }}
+              Continue
             </button>
           </div>
           <p v-if="deleteError" class="mt-2 text-sm text-red-600">{{ deleteError }}</p>
