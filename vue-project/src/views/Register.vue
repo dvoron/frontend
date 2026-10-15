@@ -8,6 +8,7 @@ import { useRouter } from "vue-router"
 const registerForm = reactive<CreateUserDto>(createEmptyCreateUserDto())
 const usernameError = ref("")
 const emailError = ref("")
+const passwordError = ref("")
 const generalError = ref("")
 
 const authStore = useAuthStore()
@@ -16,10 +17,30 @@ const router = useRouter()
 async function submit() {
   usernameError.value = ""
   emailError.value = ""
+  passwordError.value = ""
   generalError.value = ""
 
-  if (registerForm.username.includes("@")) {
+  let hasError = false
+
+  if (!registerForm.username) {
+    usernameError.value = "Username is required"
+    hasError = true
+  } else if (registerForm.username.includes("@")) {
     usernameError.value = "Username cannot contain '@'"
+    hasError = true
+  }
+
+  if (!registerForm.email) {
+    emailError.value = "Email is required"
+    hasError = true
+  }
+
+  if (!registerForm.password) {
+    passwordError.value = "Password is required"
+    hasError = true
+  }
+
+  if (hasError) {
     return
   }
 
@@ -33,6 +54,8 @@ async function submit() {
       emailError.value = data.message
     } else if (data.code === "USERNAME_ALREADY_TAKEN") {
       usernameError.value = data.message
+    } else {
+      generalError.value = data.message || "Something went wrong. Please try again."
     }
   } else {
     generalError.value = "Something went wrong. Please try again."
@@ -76,6 +99,7 @@ async function submit() {
           placeholder="Password"
           class="border rounded px-3 py-2"
         />
+        <p v-if="passwordError" class="text-red-600 text-sm">{{ passwordError }}</p>
       </div>
 
       <button
