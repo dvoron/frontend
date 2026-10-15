@@ -52,10 +52,13 @@ window.addEventListener('unhandledrejection', (event) => {
 });
 
 const auth = useAuthStore()
-await auth.tryRefresh()
+const initialRefresh = auth.tryRefresh().catch(() => false)
 
-router.beforeEach((to) => {
+router.beforeEach(async (to) => {
     const auth = useAuthStore()
+    
+    // Ensure we wait for the initial refresh before checking auth status
+    await initialRefresh;
 
     if (to.meta.requiresAuth && !auth.isLoggedIn) {
         return {
