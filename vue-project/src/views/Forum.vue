@@ -39,6 +39,9 @@ const totalPages = ref(1)
 const loadPosts = async (loadMore = false) => {
   const [data, status] = await getAllPosts(currentPage.value)
   if (status >= 200 && status < 300) {
+    data.content.forEach((post: Post) => {
+      post.comments = post.comments || []
+    })
     if (loadMore) {
       posts.value.push(...data.content)
     } else {
@@ -75,6 +78,7 @@ const createPost = async () => {
   const [data, status] = await apiCreatePost(newPost.value.title, newPost.value.content, authStore.accessToken)
   
   if (status >= 200 && status < 300) {
+    data.comments = data.comments || []
     posts.value.unshift(data)
     newPost.value.title = ''
     newPost.value.content = ''
