@@ -37,7 +37,7 @@ const currentPage = ref(0)
 const totalPages = ref(1)
 
 const loadPosts = async (loadMore = false) => {
-  const [data, status] = await getAllPosts(currentPage.value)
+  const { data, status } = await getAllPosts(currentPage.value)
   if (status >= 200 && status < 300) {
     data.content.forEach((post: Post) => {
       post.comments = post.comments || []
@@ -80,7 +80,7 @@ const createPost = async () => {
   createPostError.value = ''
   
   try {
-    const [data, status] = await apiCreatePost(newPost.value.title, newPost.value.content, authStore.accessToken)
+    const { data, status } = await apiCreatePost(newPost.value.title, newPost.value.content)
     
     if (status >= 200 && status < 300) {
       data.comments = data.comments || []
@@ -102,7 +102,7 @@ const addComment = async (post: Post) => {
   if ((post.newCommentContent || '').length > 1000) return
 
   post.commentError = ''
-  const [data, status] = await apiCreateComment(post.id, null, post.newCommentContent, authStore.accessToken)
+  const { data, status } = await apiCreateComment(post.id, null, post.newCommentContent)
   
   if (status >= 200 && status < 300) {
     post.comments.push(data)
@@ -134,7 +134,7 @@ const handleReply = async (postId: number, parentCommentId: number, content: str
     if (onComplete) onComplete(false)
     return
   }
-  const [data, status] = await apiCreateComment(postId, parentCommentId, content, authStore.accessToken)
+  const { data, status } = await apiCreateComment(postId, parentCommentId, content)
   if (status >= 200 && status < 300) {
     const post = posts.value.find(p => p.id === postId)
     if (post) {

@@ -26,7 +26,7 @@ onMounted(async () => {
     return
   }
 
-  const [data, status] = await getUserById(userId, authStore.accessToken)
+  const { data, status } = await getUserById(userId)
   if (status === 200) {
     user.value.username = data.username || data.name
     user.value.email = data.email

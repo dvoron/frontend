@@ -10,6 +10,16 @@ const apiClient = axios.create({
 apiClient.interceptors.request.use(
     (config) => {
         logger.debug(`API Request: ${config.method?.toUpperCase()} ${config.url}`);
+        const auth = useAuthStore();
+        if (auth.accessToken && !config.headers?.Authorization && config.url !== '/api/auth/refresh') {
+            if (config.headers) {
+                if (typeof config.headers.set === 'function') {
+                    config.headers.set('Authorization', `Bearer ${auth.accessToken}`);
+                } else {
+                    config.headers.Authorization = `Bearer ${auth.accessToken}`;
+                }
+            }
+        }
         return config;
     },
     (error) => {
@@ -65,5 +75,35 @@ apiClient.interceptors.response.use(
         return Promise.reject(error);
     }
 );
+
+export interface ApiResponse<T = any> {
+    ok: boolean;
+    status: number;
+    data: T;
+}
+
+export async function request<T = any>(config: import('axios').AxiosRequestConfig): Promise<ApiResponse<T>> {
+    try {
+        const response = await apiClient(config);
+        return {
+            ok: true,
+            status: response.status,
+            data: response.data
+        };
+    } catch (error) {
+        if (axios.isAxiosError(error) && error.response) {
+            return {
+                ok: false,
+                status: error.response.status,
+                data: error.response.data
+            };
+        }
+        return {
+            ok: false,
+            status: 503,
+            data: { message: 'Network error occurred' } as any
+        };
+    }
+}
 
 export default apiClient;

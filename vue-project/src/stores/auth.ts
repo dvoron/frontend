@@ -36,7 +36,7 @@ export const useAuthStore = defineStore('auth', {
             this.accessToken = null
         },
         async tryRefresh() {
-            const [data, status] = await refresh();
+            const { data, status } = await refresh();
             if (status === 200 && data.accessToken) {
                 this.setTokens(data.accessToken);
                 return true;

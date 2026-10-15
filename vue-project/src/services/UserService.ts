@@ -1,100 +1,65 @@
-import apiClient from '@/utils/axios'
+import { request } from '@/utils/axios'
 import type { LoginUserDto } from '@/dto/LoginUserDto'
 import type { CreateUserDto } from '@/dto/CreateUserDto'
-import axios from 'axios'
 
 export async function login(dto: LoginUserDto) {
-    try {
-        const response = await apiClient.post('/api/auth/login', {
+    return request({
+        method: 'POST',
+        url: '/api/auth/login',
+        data: {
             login: dto.login,
             password: dto.password,
-        })
-        return [response.data, response.status]
-    } catch (error) {
-        if (axios.isAxiosError(error) && error.response) {
-            return [error.response.data, error.response.status]
         }
-        return [{ message: 'Network error occurred' }, 503]
-    }
+    })
 }
 
 export async function refresh() {
-    try {
-        const response = await apiClient.post('/api/auth/refresh', {})
-        return [response.data, response.status]
-    } catch (error) {
-        if (axios.isAxiosError(error) && error.response) {
-            return [error.response.data, error.response.status]
-        }
-        return [{ message: 'Network error occurred' }, 503]
-    }
+    return request({
+        method: 'POST',
+        url: '/api/auth/refresh',
+        data: {}
+    })
 }
 
 export async function register(dto: CreateUserDto) {
-    try {
-        const response = await apiClient.post('/api/auth/register', {
+    return request({
+        method: 'POST',
+        url: '/api/auth/register',
+        data: {
             username: dto.username,
             email: dto.email,
             password: dto.password,
-        })
-        return [response.data, response.status]
-    } catch (error) {
-        if (axios.isAxiosError(error) && error.response) {
-            return [error.response.data, error.response.status]
         }
-        return [{ message: 'Network error occurred' }, 503]
-    }
+    })
 }
 
-export async function logout(accessToken: string) {
-    try {
-        await apiClient.post('/api/auth/logout', {}, {
-            headers: { Authorization: `Bearer ${accessToken}` }
-        })
-    } catch (_) {
-        // Errors during logout are ignored — tokens are cleared locally regardless
-    }
+export async function logout() {
+    return request({
+        method: 'POST',
+        url: '/api/auth/logout',
+        data: {}
+    })
 }
 
-export async function getUserById(id: number, accessToken: string) {
-    try {
-        const response = await apiClient.get(`/api/users/${id}`, {
-            headers: { Authorization: `Bearer ${accessToken}` }
-        })
-        return [response.data, response.status]
-    } catch (error) {
-        if (axios.isAxiosError(error) && error.response) {
-            return [error.response.data, error.response.status]
-        }
-        return [{ message: 'Network error occurred' }, 503]
-    }
+export async function getUserById(id: number) {
+    return request({
+        method: 'GET',
+        url: `/api/users/${id}`
+    })
 }
 
-export async function updateUser(id: number, user: any, accessToken: string) {
-    try {
-        const response = await apiClient.put(`/api/users/${id}`, user, {
-            headers: { Authorization: `Bearer ${accessToken}` }
-        })
-        return [response.data, response.status]
-    } catch (error) {
-        if (axios.isAxiosError(error) && error.response) {
-            return [error.response.data, error.response.status]
-        }
-        return [{ message: 'Network error occurred' }, 503]
-    }
+export async function updateUser(id: number, user: any) {
+    return request({
+        method: 'PUT',
+        url: `/api/users/${id}`,
+        data: user
+    })
 }
 
-export async function deleteUser(id: number, accessToken: string, password?: string) {
-    try {
-        const response = await apiClient.delete(`/api/users/${id}`, {
-            headers: { Authorization: `Bearer ${accessToken}` },
-            data: { password }
-        })
-        return [response.data, response.status]
-    } catch (error) {
-        if (axios.isAxiosError(error) && error.response) {
-            return [error.response.data, error.response.status]
-        }
-        return [{ message: 'Network error occurred' }, 503]
-    }
+export async function deleteUser(id: number, password?: string) {
+    return request({
+        method: 'DELETE',
+        url: `/api/users/${id}`,
+        data: { password }
+    })
 }

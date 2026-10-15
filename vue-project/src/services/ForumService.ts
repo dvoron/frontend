@@ -1,77 +1,45 @@
-import apiClient from '@/utils/axios'
-import axios from 'axios'
+import { request } from '@/utils/axios'
 
 export async function getAllPosts(page: number = 0, size: number = 10) {
-    try {
-        const response = await apiClient.get(`/api/forum/posts?page=${page}&size=${size}`)
-        return [response.data, response.status]
-    } catch (error) {
-        if (axios.isAxiosError(error) && error.response) {
-            return [error.response.data, error.response.status]
-        }
-        return [{ message: 'Network error occurred' }, 503]
-    }
+    return request({
+        method: 'GET',
+        url: `/api/forum/posts?page=${page}&size=${size}`
+    })
 }
 
-export async function createPost(title: string, content: string, accessToken: string) {
-    try {
-        const response = await apiClient.post('/api/forum/posts', {
+export async function createPost(title: string, content: string) {
+    return request({
+        method: 'POST',
+        url: '/api/forum/posts',
+        data: {
             title,
             content
-        }, {
-            headers: { Authorization: `Bearer ${accessToken}` }
-        })
-        return [response.data, response.status]
-    } catch (error) {
-        if (axios.isAxiosError(error) && error.response) {
-            return [error.response.data, error.response.status]
         }
-        return [{ message: 'Network error occurred' }, 503]
-    }
+    })
 }
 
-export async function createComment(postId: number, parentCommentId: number | null, content: string, accessToken: string) {
-    try {
-        const response = await apiClient.post('/api/forum/comments', {
+export async function createComment(postId: number, parentCommentId: number | null, content: string) {
+    return request({
+        method: 'POST',
+        url: '/api/forum/comments',
+        data: {
             postId,
             parentCommentId,
             content
-        }, {
-            headers: { Authorization: `Bearer ${accessToken}` }
-        })
-        return [response.data, response.status]
-    } catch (error) {
-        if (axios.isAxiosError(error) && error.response) {
-            return [error.response.data, error.response.status]
         }
-        return [{ message: 'Network error occurred' }, 503]
-    }
+    })
 }
 
-export async function getUserPosts(userId: number, accessToken: string) {
-    try {
-        const response = await apiClient.get(`/api/forum/users/${userId}/posts`, {
-            headers: { Authorization: `Bearer ${accessToken}` }
-        })
-        return [response.data, response.status]
-    } catch (error) {
-        if (axios.isAxiosError(error) && error.response) {
-            return [error.response.data, error.response.status]
-        }
-        return [{ message: 'Network error occurred' }, 503]
-    }
+export async function getUserPosts(userId: number) {
+    return request({
+        method: 'GET',
+        url: `/api/forum/users/${userId}/posts`
+    })
 }
 
-export async function getUserComments(userId: number, accessToken: string) {
-    try {
-        const response = await apiClient.get(`/api/forum/users/${userId}/comments`, {
-            headers: { Authorization: `Bearer ${accessToken}` }
-        })
-        return [response.data, response.status]
-    } catch (error) {
-        if (axios.isAxiosError(error) && error.response) {
-            return [error.response.data, error.response.status]
-        }
-        return [{ message: 'Network error occurred' }, 503]
-    }
+export async function getUserComments(userId: number) {
+    return request({
+        method: 'GET',
+        url: `/api/forum/users/${userId}/comments`
+    })
 }

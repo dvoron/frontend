@@ -84,7 +84,7 @@ describe('Auth Store', () => {
 
   describe('tryRefresh', () => {
     it('returns true and sets token on success', async () => {
-      vi.mocked(refresh).mockResolvedValue([{ accessToken: 'new-token' }, 200] as any)
+      vi.mocked(refresh).mockResolvedValue({ data: { accessToken: 'new-token' }, status: 200, ok: true } as any)
       const store = useAuthStore()
       const result = await store.tryRefresh()
       expect(result).toBe(true)
@@ -92,7 +92,7 @@ describe('Auth Store', () => {
     })
 
     it('returns false if status is not 200', async () => {
-      vi.mocked(refresh).mockResolvedValue([{}, 401] as any)
+      vi.mocked(refresh).mockResolvedValue({ data: {}, status: 401, ok: false } as any)
       const store = useAuthStore()
       const result = await store.tryRefresh()
       expect(result).toBe(false)
@@ -100,7 +100,7 @@ describe('Auth Store', () => {
     })
 
     it('returns false if accessToken is missing in response', async () => {
-      vi.mocked(refresh).mockResolvedValue([{}, 200] as any)
+      vi.mocked(refresh).mockResolvedValue({ data: {}, status: 200, ok: true } as any)
       const store = useAuthStore()
       const result = await store.tryRefresh()
       expect(result).toBe(false)

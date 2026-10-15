@@ -49,7 +49,7 @@ async function submit() {
   }
 
   try {
-    const [data, status] = await register(registerForm)
+    const { data, status } = await register(registerForm)
 
     if (status === 200) {
       authStore.setTokens(data.accessToken)

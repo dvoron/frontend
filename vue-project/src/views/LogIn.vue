@@ -19,7 +19,7 @@ async function onSignIn() {
   errorMessage.value = ""
   
   try {
-    const [data, status] = await login(loginFormDto)
+    const { data, status } = await login(loginFormDto)
 
     if (status === 200) {
       authStore.setTokens(data.accessToken)

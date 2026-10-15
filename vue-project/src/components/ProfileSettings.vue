@@ -93,7 +93,7 @@ const handleSave = async () => {
     updateData.newPassword = user.value.newPassword
   }
 
-  const [data, status] = await updateUser(userId, updateData, authStore.accessToken)
+  const { data, status } = await updateUser(userId, updateData)
   if (status === 200) {
     successMessage.value = 'Profile updated successfully!'
     user.value.oldPassword = ''

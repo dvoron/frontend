@@ -28,12 +28,12 @@ const loadUserActivity = async () => {
   
   if (!userId || !authStore.accessToken) return
 
-  const [postsData, postsStatus] = await getUserPosts(userId, authStore.accessToken)
+  const { data: postsData, status: postsStatus } = await getUserPosts(userId)
   if (postsStatus === 200) {
     userPosts.value = postsData
   }
 
-  const [commentsData, commentsStatus] = await getUserComments(userId, authStore.accessToken)
+  const { data: commentsData, status: commentsStatus } = await getUserComments(userId)
   if (commentsStatus === 200) {
     userComments.value = commentsData
   }
