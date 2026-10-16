@@ -28,6 +28,28 @@ apiClient.interceptors.request.use(
   }
 )
 
+const sanitizeLogData = (data: any): any => {
+  if (!data) return data
+  if (typeof data !== 'object') return data
+  
+  if (Array.isArray(data)) {
+    return data.map(item => sanitizeLogData(item))
+  }
+  
+  const sanitized = { ...data }
+  const sensitiveKeys = ['password', 'token', 'secret', 'authorization', 'credentials']
+  
+  for (const key of Object.keys(sanitized)) {
+    const lowerKey = key.toLowerCase()
+    if (sensitiveKeys.some(k => lowerKey.includes(k))) {
+      sanitized[key] = '[REDACTED]'
+    } else if (typeof sanitized[key] === 'object' && sanitized[key] !== null) {
+      sanitized[key] = sanitizeLogData(sanitized[key])
+    }
+  }
+  return sanitized
+}
+
 apiClient.interceptors.response.use(
   (response) => {
     logger.debug(`API Response: ${response.status} ${response.config.url}`)
@@ -39,7 +61,7 @@ apiClient.interceptors.response.use(
     if (error.response) {
       logger.warn(
         `API Response Error: ${error.response.status} ${error.config.url}`,
-        error.response.data
+        sanitizeLogData(error.response.data)
       )
 
       if (
