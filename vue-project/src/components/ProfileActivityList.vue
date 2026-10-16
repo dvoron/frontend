@@ -2,20 +2,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { getUserPosts, getUserComments } from '@/services/ForumService'
-
-export interface UserPost {
-  id: number;
-  title: string;
-  content: string;
-  timestamp: string;
-}
-
-export interface UserComment {
-  id: number;
-  postTitle: string;
-  content: string;
-  timestamp: string;
-}
+import type { UserPost, UserComment } from '@/types/forum'
 
 const authStore = useAuthStore()
 

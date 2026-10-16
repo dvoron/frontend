@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useAuthStore } from '@/stores/auth'
-import type { Comment } from '@/views/Forum.vue'
+import type { Comment } from '@/types/forum'
 
 const authStore = useAuthStore()
 

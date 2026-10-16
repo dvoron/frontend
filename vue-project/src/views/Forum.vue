@@ -3,26 +3,7 @@ import { ref, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import ForumComment from '@/components/ForumComment.vue'
 import { getAllPosts, createPost as apiCreatePost, createComment as apiCreateComment } from '@/services/ForumService'
-
-export interface Comment {
-  id: number;
-  author: string;
-  timestamp: string;
-  content: string;
-  replies?: Comment[];
-}
-
-export interface Post {
-  id: number;
-  author: string;
-  timestamp: string;
-  title: string;
-  content: string;
-  comments: Comment[];
-  showComments?: boolean;
-  newCommentContent?: string;
-  commentError?: string;
-}
+import type { Comment, Post } from '@/types/forum'
 
 const authStore = useAuthStore()
 
