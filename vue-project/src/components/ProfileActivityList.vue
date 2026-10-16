@@ -25,14 +25,17 @@ const loadUserActivity = async () => {
   
   if (!userId || !authStore.accessToken) return
 
-  const { data: postsData, status: postsStatus } = await getUserPosts(userId)
-  if (postsStatus === 200) {
-    userPosts.value = postsData
+  const [postsResponse, commentsResponse] = await Promise.all([
+    getUserPosts(userId),
+    getUserComments(userId)
+  ])
+
+  if (postsResponse.status === 200) {
+    userPosts.value = postsResponse.data
   }
 
-  const { data: commentsData, status: commentsStatus } = await getUserComments(userId)
-  if (commentsStatus === 200) {
-    userComments.value = commentsData
+  if (commentsResponse.status === 200) {
+    userComments.value = commentsResponse.data
   }
 }
 
