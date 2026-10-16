@@ -1,6 +1,7 @@
 import { request } from '@/utils/axios'
 import type { LoginUserDto } from '@/dto/LoginUserDto'
 import type { CreateUserDto } from '@/dto/CreateUserDto'
+import type { UpdateUserDto } from '@/dto/UpdateUserDto'
 
 export async function login(dto: LoginUserDto) {
     return request({
@@ -48,7 +49,7 @@ export async function getUserById(id: number) {
     })
 }
 
-export async function updateUser(id: number, user: any) {
+export async function updateUser(id: number, user: UpdateUserDto) {
     return request({
         method: 'PUT',
         url: `/api/users/${id}`,

@@ -10,6 +10,16 @@ const userPosts = ref<UserPost[]>([])
 const userComments = ref<UserComment[]>([])
 const activityFilter = ref('both') // 'posts', 'comments', 'both'
 
+interface ActivityItem {
+  type: 'post' | 'comment';
+  id: string;
+  originalId: number;
+  title?: string;
+  postTitle?: string;
+  content: string;
+  timestamp: string;
+}
+
 const loadUserActivity = async () => {
   const userId = authStore.userId
   
@@ -33,10 +43,10 @@ onMounted(async () => {
 defineExpose({ loadUserActivity })
 
 const displayedActivity = computed(() => {
-  let activity: any[] = []
+  let activity: ActivityItem[] = []
   
   if (activityFilter.value === 'both' || activityFilter.value === 'posts') {
-    const mappedPosts = userPosts.value.map(post => ({
+    const mappedPosts: ActivityItem[] = userPosts.value.map(post => ({
       type: 'post',
       id: `post-${post.id}`,
       originalId: post.id,
@@ -48,7 +58,7 @@ const displayedActivity = computed(() => {
   }
   
   if (activityFilter.value === 'both' || activityFilter.value === 'comments') {
-    const mappedComments = userComments.value.map(comment => ({
+    const mappedComments: ActivityItem[] = userComments.value.map(comment => ({
       type: 'comment',
       id: `comment-${comment.id}`,
       originalId: comment.id,

@@ -2,6 +2,7 @@
 import { ref, watch } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { updateUser } from '@/services/UserService'
+import type { UpdateUserDto } from '@/dto/UpdateUserDto'
 import ProfileDeleteAccountDialog from './ProfileDeleteAccountDialog.vue'
 
 const props = defineProps<{
@@ -78,7 +79,7 @@ const handleSave = async () => {
     return
   }
   
-  const updateData: any = {
+  const updateData: UpdateUserDto = {
     username: user.value.username,
     email: user.value.email,
   }
