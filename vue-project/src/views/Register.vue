@@ -1,15 +1,15 @@
 <script setup lang="ts">
-import { reactive, ref } from "vue"
-import { createEmptyCreateUserDto, type CreateUserDto } from "@/dto/CreateUserDto";
-import { register } from "@/services/UserService"
-import { useAuthStore } from "@/stores/auth"
-import { useRouter } from "vue-router"
+import { reactive, ref } from 'vue'
+import { createEmptyCreateUserDto, type CreateUserDto } from '@/dto/CreateUserDto'
+import { register } from '@/services/UserService'
+import { useAuthStore } from '@/stores/auth'
+import { useRouter } from 'vue-router'
 
 const registerForm = reactive<CreateUserDto>(createEmptyCreateUserDto())
-const usernameError = ref("")
-const emailError = ref("")
-const passwordError = ref("")
-const generalError = ref("")
+const usernameError = ref('')
+const emailError = ref('')
+const passwordError = ref('')
+const generalError = ref('')
 const isPending = ref(false)
 
 const authStore = useAuthStore()
@@ -18,28 +18,28 @@ const router = useRouter()
 async function submit() {
   if (isPending.value) return
   isPending.value = true
-  usernameError.value = ""
-  emailError.value = ""
-  passwordError.value = ""
-  generalError.value = ""
+  usernameError.value = ''
+  emailError.value = ''
+  passwordError.value = ''
+  generalError.value = ''
 
   let hasError = false
 
   if (!registerForm.username) {
-    usernameError.value = "Username is required"
+    usernameError.value = 'Username is required'
     hasError = true
-  } else if (registerForm.username.includes("@")) {
+  } else if (registerForm.username.includes('@')) {
     usernameError.value = "Username cannot contain '@'"
     hasError = true
   }
 
   if (!registerForm.email) {
-    emailError.value = "Email is required"
+    emailError.value = 'Email is required'
     hasError = true
   }
 
   if (!registerForm.password) {
-    passwordError.value = "Password is required"
+    passwordError.value = 'Password is required'
     hasError = true
   }
 
@@ -53,17 +53,17 @@ async function submit() {
 
     if (status === 200) {
       authStore.setTokens(data.accessToken)
-      router.push({ name: "home" })
+      router.push({ name: 'home' })
     } else if (status === 409) {
-      if (data.code === "EMAIL_ALREADY_TAKEN") {
+      if (data.code === 'EMAIL_ALREADY_TAKEN') {
         emailError.value = data.message
-      } else if (data.code === "USERNAME_ALREADY_TAKEN") {
+      } else if (data.code === 'USERNAME_ALREADY_TAKEN') {
         usernameError.value = data.message
       } else {
-        generalError.value = data.message || "Something went wrong. Please try again."
+        generalError.value = data.message || 'Something went wrong. Please try again.'
       }
     } else {
-      generalError.value = "Something went wrong. Please try again."
+      generalError.value = 'Something went wrong. Please try again.'
     }
   } finally {
     isPending.value = false

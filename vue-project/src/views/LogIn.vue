@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import { reactive, ref } from "vue"
-import { createEmptyLoginUserDto, type LoginUserDto } from "@/dto/LoginUserDto";
-import { login } from "@/services/UserService"
-import { useAuthStore } from "@/stores/auth"
-import { useRouter } from "vue-router"
+import { reactive, ref } from 'vue'
+import { createEmptyLoginUserDto, type LoginUserDto } from '@/dto/LoginUserDto'
+import { login } from '@/services/UserService'
+import { useAuthStore } from '@/stores/auth'
+import { useRouter } from 'vue-router'
 
 const loginFormDto = reactive<LoginUserDto>(createEmptyLoginUserDto())
-const errorMessage = ref("")
-const passwordVisibilityType = ref("password")
+const errorMessage = ref('')
+const passwordVisibilityType = ref('password')
 const isPending = ref(false)
 
 const authStore = useAuthStore()
@@ -16,18 +16,18 @@ const router = useRouter()
 async function onSignIn() {
   if (isPending.value) return
   isPending.value = true
-  errorMessage.value = ""
-  
+  errorMessage.value = ''
+
   try {
     const { data, status } = await login(loginFormDto)
 
     if (status === 200) {
       authStore.setTokens(data.accessToken)
-      router.push({ name: "home" })
+      router.push({ name: 'home' })
     } else if (status === 401) {
-      errorMessage.value = "Username or password is incorrect"
+      errorMessage.value = 'Username or password is incorrect'
     } else {
-      errorMessage.value = "Something went wrong. Please try again."
+      errorMessage.value = 'Something went wrong. Please try again.'
     }
   } finally {
     isPending.value = false
@@ -35,7 +35,7 @@ async function onSignIn() {
 }
 
 function changePasswordVisibility() {
-  passwordVisibilityType.value = passwordVisibilityType.value === "password" ? "text" : "password"
+  passwordVisibilityType.value = passwordVisibilityType.value === 'password' ? 'text' : 'password'
 }
 </script>
 

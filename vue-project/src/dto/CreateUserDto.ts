@@ -1,13 +1,13 @@
 export interface CreateUserDto {
-    username: string;
-    email: string;
-    password: string;
+  username: string
+  email: string
+  password: string
 }
 
 export function createEmptyCreateUserDto(): CreateUserDto {
-    return {
-        username: "",
-        email: "",
-        password: "",
-    };
+  return {
+    username: '',
+    email: '',
+    password: ''
+  }
 }

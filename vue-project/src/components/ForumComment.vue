@@ -18,9 +18,9 @@ const replyContent = ref('')
 const replyError = ref('')
 
 const submitReply = () => {
-  if (!replyContent.value.trim()) return;
-  if (replyContent.value.length > 1000) return;
-  
+  if (!replyContent.value.trim()) return
+  if (replyContent.value.length > 1000) return
+
   replyError.value = ''
   emit('reply', props.comment.id, replyContent.value, (success: boolean) => {
     if (success) {
@@ -32,7 +32,11 @@ const submitReply = () => {
   })
 }
 
-const handleChildReply = (parentId: number, content: string, onComplete: (success: boolean) => void) => {
+const handleChildReply = (
+  parentId: number,
+  content: string,
+  onComplete: (success: boolean) => void
+) => {
   emit('reply', parentId, content, onComplete)
 }
 </script>
@@ -46,7 +50,7 @@ const handleChildReply = (parentId: number, content: string, onComplete: (succes
     <div class="comment-content">
       {{ comment.content }}
     </div>
-    
+
     <div class="comment-actions" v-if="authStore.isLoggedIn">
       <button class="action-btn" @click="showReplyInput = !showReplyInput">Reply</button>
     </div>
@@ -54,21 +58,25 @@ const handleChildReply = (parentId: number, content: string, onComplete: (succes
     <div v-if="showReplyInput" class="reply-input">
       <div class="input-wrapper">
         <textarea v-model="replyContent" placeholder="Write a reply..." rows="2"></textarea>
-        <span class="char-counter" :class="{ 'error': replyContent.length > 1000 }">{{ replyContent.length }}/1000</span>
+        <span class="char-counter" :class="{ error: replyContent.length > 1000 }"
+          >{{ replyContent.length }}/1000</span
+        >
       </div>
       <div v-if="replyError" class="error-message">{{ replyError }}</div>
       <div class="reply-actions">
-        <button class="btn-submit" @click="submitReply" :disabled="replyContent.length > 1000">Submit</button>
+        <button class="btn-submit" @click="submitReply" :disabled="replyContent.length > 1000">
+          Submit
+        </button>
         <button class="btn-cancel" @click="showReplyInput = false">Cancel</button>
       </div>
     </div>
 
     <div class="replies" v-if="comment.replies && comment.replies.length > 0">
-      <ForumComment 
-        v-for="reply in comment.replies" 
-        :key="reply.id" 
-        :comment="reply" 
-        @reply="handleChildReply" 
+      <ForumComment
+        v-for="reply in comment.replies"
+        :key="reply.id"
+        :comment="reply"
+        @reply="handleChildReply"
       />
     </div>
   </div>
@@ -168,7 +176,8 @@ textarea:focus {
   gap: 10px;
 }
 
-.btn-submit, .btn-cancel {
+.btn-submit,
+.btn-cancel {
   padding: 5px 15px;
   border: none;
   border-radius: 4px;
