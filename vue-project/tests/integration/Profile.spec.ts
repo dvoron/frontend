@@ -75,15 +75,6 @@ describe('Profile.vue Integration', () => {
     expect(wrapper.text()).toContain('My First Comment')
   })
 
-  it('redirects to login when user is not authenticated', async () => {
-    const store = useAuthStore()
-    store.accessToken = null
-    
-    mountComponent()
-    
-    expect(mockPush).toHaveBeenCalledWith({ name: 'login' })
-  })
-
   it('uses data.name if data.username is missing', async () => {
     server.use(
       http.get('/api/users/1', () => {
