@@ -2,12 +2,10 @@
 import { ref, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { getUserById } from '@/services/UserService'
-import { useRouter } from 'vue-router'
 import ProfileSettings from '@/components/ProfileSettings.vue'
 import ProfileActivityList from '@/components/ProfileActivityList.vue'
 
 const authStore = useAuthStore()
-const router = useRouter()
 
 const isLoading = ref(true)
 const isEditing = ref(false)
@@ -21,8 +19,9 @@ const user = ref({
 
 onMounted(async () => {
   const userId = authStore.userId
-  if (!userId || !authStore.accessToken) {
-    router.push({ name: 'login' })
+  if (!userId) {
+    errorMessage.value = 'User ID not found.'
+    isLoading.value = false
     return
   }
 
