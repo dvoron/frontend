@@ -79,8 +79,9 @@ async function submit() {
       <p v-if="generalError" class="text-red-600 text-sm">{{ generalError }}</p>
 
       <div class="flex flex-col gap-1">
-        <label>Username</label>
+        <label for="register-username">Username</label>
         <input
+          id="register-username"
           v-model="registerForm.username"
           placeholder="Username"
           class="border rounded px-3 py-2"
@@ -89,8 +90,9 @@ async function submit() {
       </div>
 
       <div class="flex flex-col gap-1">
-        <label>Email</label>
+        <label for="register-email">Email</label>
         <input
+          id="register-email"
           v-model="registerForm.email"
           type="email"
           placeholder="Email"
@@ -100,8 +102,9 @@ async function submit() {
       </div>
 
       <div class="flex flex-col gap-1">
-        <label>Password</label>
+        <label for="register-password">Password</label>
         <input
+          id="register-password"
           v-model="registerForm.password"
           type="password"
           placeholder="Password"

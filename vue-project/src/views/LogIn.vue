@@ -47,8 +47,9 @@ function changePasswordVisibility() {
       <p v-if="errorMessage" class="text-red-600 text-sm">{{ errorMessage }}</p>
 
       <div class="flex flex-col gap-1">
-        <label>Username or Email</label>
+        <label for="login-username">Username or Email</label>
         <input
+          id="login-username"
           v-model="loginFormDto.login"
           placeholder="Enter username or email"
           class="border rounded px-3 py-2"
@@ -56,15 +57,16 @@ function changePasswordVisibility() {
       </div>
 
       <div class="flex flex-col gap-1">
-        <label>Password</label>
+        <label for="login-password">Password</label>
         <input
+          id="login-password"
           v-model="loginFormDto.password"
           :type="passwordVisibilityType"
           placeholder="Enter password"
           class="border rounded px-3 py-2"
         />
-        <label class="flex items-center gap-2 text-sm">
-          <input type="checkbox" @change="changePasswordVisibility" />
+        <label class="flex items-center gap-2 text-sm" for="login-show-password">
+          <input id="login-show-password" type="checkbox" @change="changePasswordVisibility" />
           Show password
         </label>
       </div>
