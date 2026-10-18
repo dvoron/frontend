@@ -13,6 +13,12 @@ vi.mock('vue-router', () => ({
   useRouter: vi.fn()
 }))
 
+vi.mock('@/main', () => ({
+  default: {
+    push: vi.fn()
+  }
+}))
+
 describe('LogIn.vue Integration', () => {
   const mockPush = vi.fn()
 

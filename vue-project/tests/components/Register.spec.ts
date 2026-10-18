@@ -42,7 +42,7 @@ describe('Register.vue', () => {
 
   it('handles successful registration', async () => {
     // Note: The component checks for status 200 instead of 201 for success
-    vi.mocked(register).mockResolvedValueOnce([{ accessToken: 'token', refreshToken: 'refresh' }, 200])
+    vi.mocked(register).mockResolvedValueOnce({ data: { accessToken: 'token', refreshToken: 'refresh' }, status: 200, ok: true } as any)
     
     const wrapper = mountComponent()
     await wrapper.find('input[placeholder="Username"]').setValue('testuser')
@@ -62,9 +62,12 @@ describe('Register.vue', () => {
   })
 
   it('handles email already taken error (409)', async () => {
-    vi.mocked(register).mockResolvedValueOnce([{ code: 'EMAIL_ALREADY_TAKEN', message: 'Email in use' }, 409])
+    vi.mocked(register).mockResolvedValueOnce({ data: { code: 'EMAIL_ALREADY_TAKEN', message: 'Email in use' }, status: 409, ok: false } as any)
     
     const wrapper = mountComponent()
+    await wrapper.find('input[placeholder="Username"]').setValue('testuser')
+    await wrapper.find('input[placeholder="Email"]').setValue('test@example.com')
+    await wrapper.find('input[placeholder="Password"]').setValue('password123')
     await wrapper.find('form').trigger('submit.prevent')
     
     await new Promise(resolve => setTimeout(resolve, 0))
@@ -72,9 +75,12 @@ describe('Register.vue', () => {
   })
 
   it('handles username already taken error (409)', async () => {
-    vi.mocked(register).mockResolvedValueOnce([{ code: 'USERNAME_ALREADY_TAKEN', message: 'Username in use' }, 409])
+    vi.mocked(register).mockResolvedValueOnce({ data: { code: 'USERNAME_ALREADY_TAKEN', message: 'Username in use' }, status: 409, ok: false } as any)
     
     const wrapper = mountComponent()
+    await wrapper.find('input[placeholder="Username"]').setValue('testuser')
+    await wrapper.find('input[placeholder="Email"]').setValue('test@example.com')
+    await wrapper.find('input[placeholder="Password"]').setValue('password123')
     await wrapper.find('form').trigger('submit.prevent')
     
     await new Promise(resolve => setTimeout(resolve, 0))
@@ -82,9 +88,12 @@ describe('Register.vue', () => {
   })
 
   it('handles general error (500)', async () => {
-    vi.mocked(register).mockResolvedValueOnce([{}, 500])
+    vi.mocked(register).mockResolvedValueOnce({ data: {}, status: 500, ok: false } as any)
     
     const wrapper = mountComponent()
+    await wrapper.find('input[placeholder="Username"]').setValue('testuser')
+    await wrapper.find('input[placeholder="Email"]').setValue('test@example.com')
+    await wrapper.find('input[placeholder="Password"]').setValue('password123')
     await wrapper.find('form').trigger('submit.prevent')
     
     await new Promise(resolve => setTimeout(resolve, 0))

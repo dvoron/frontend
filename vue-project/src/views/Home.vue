@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useAuthStore } from "@/stores/auth"
+import { useAuthStore } from '@/stores/auth'
 
 const authStore = useAuthStore()
 </script>
@@ -16,7 +16,9 @@ const authStore = useAuthStore()
         Please
         <router-link to="/home/login" class="text-teal-600 hover:underline">login</router-link>
         or
-        <router-link to="/home/register" class="text-teal-600 hover:underline">register</router-link>
+        <router-link to="/home/register" class="text-teal-600 hover:underline"
+          >register</router-link
+        >
         to continue.
       </p>
     </div>

@@ -2,26 +2,12 @@
 import { ref, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import ForumComment from '@/components/ForumComment.vue'
-import { getAllPosts, createPost as apiCreatePost, createComment as apiCreateComment } from '@/services/ForumService'
-
-export interface Comment {
-  id: number;
-  author: string;
-  timestamp: string;
-  content: string;
-  replies?: Comment[];
-}
-
-export interface Post {
-  id: number;
-  author: string;
-  timestamp: string;
-  title: string;
-  content: string;
-  comments: Comment[];
-  showComments?: boolean;
-  newCommentContent?: string;
-}
+import {
+  getAllPosts,
+  createPost as apiCreatePost,
+  createComment as apiCreateComment
+} from '@/services/ForumService'
+import type { Comment, Post } from '@/types/forum'
 
 const authStore = useAuthStore()
 
@@ -32,11 +18,28 @@ const getCurrentUsername = () => {
 
 // State for posts
 const posts = ref<Post[]>([])
+const currentPage = ref(0)
+const totalPages = ref(1)
 
-const loadPosts = async () => {
-  const [data, status] = await getAllPosts()
-  if (status === 200) {
-    posts.value = data
+const loadPosts = async (loadMore = false) => {
+  const { data, status } = await getAllPosts(currentPage.value)
+  if (status >= 200 && status < 300) {
+    data.content.forEach((post: Post) => {
+      post.comments = post.comments || []
+    })
+    if (loadMore) {
+      posts.value.push(...data.content)
+    } else {
+      posts.value = data.content
+    }
+    totalPages.value = data.totalPages
+  }
+}
+
+const loadMorePosts = () => {
+  if (currentPage.value < totalPages.value - 1) {
+    currentPage.value++
+    loadPosts(true)
   }
 }
 
@@ -49,19 +52,32 @@ const newPost = ref({
   title: '',
   content: ''
 })
+const createPostError = ref('')
+const isCreatingPost = ref(false)
 
 const createPost = async () => {
+  if (isCreatingPost.value) return
   if (!authStore.accessToken) return
   if (!newPost.value.title.trim()) return
   if (newPost.value.title.length > 255 || (newPost.value.content || '').length > 2000) return
 
-  const [data, status] = await apiCreatePost(newPost.value.title, newPost.value.content, authStore.accessToken)
-  
-  if (status === 200) {
-    posts.value.unshift(data)
-    newPost.value.title = ''
-    newPost.value.content = ''
-    showNewPostForm.value = false
+  isCreatingPost.value = true
+  createPostError.value = ''
+
+  try {
+    const { data, status } = await apiCreatePost(newPost.value.title, newPost.value.content)
+
+    if (status >= 200 && status < 300) {
+      data.comments = data.comments || []
+      posts.value.unshift(data)
+      newPost.value.title = ''
+      newPost.value.content = ''
+      showNewPostForm.value = false
+    } else {
+      createPostError.value = 'Failed to create post. Please try again.'
+    }
+  } finally {
+    isCreatingPost.value = false
   }
 }
 
@@ -70,23 +86,30 @@ const addComment = async (post: Post) => {
   if (!post.newCommentContent?.trim()) return
   if ((post.newCommentContent || '').length > 1000) return
 
-  const [data, status] = await apiCreateComment(post.id, null, post.newCommentContent, authStore.accessToken)
-  
-  if (status === 200) {
+  post.commentError = ''
+  const { data, status } = await apiCreateComment(post.id, null, post.newCommentContent)
+
+  if (status >= 200 && status < 300) {
     post.comments.push(data)
     post.newCommentContent = ''
+  } else {
+    post.commentError = 'Failed to add comment. Please try again.'
   }
 }
 
 // Function to recursively find a comment and add a reply
-const addReplyToComment = (commentsList: Comment[], parentId: number, newComment: Comment): boolean => {
+const addReplyToComment = (
+  commentsList: Comment[],
+  parentId: number,
+  newComment: Comment
+): boolean => {
   for (let comment of commentsList) {
     if (comment.id === parentId) {
       if (!comment.replies) comment.replies = []
       comment.replies.push(newComment)
       return true
     }
-    
+
     if (comment.replies && comment.replies.length > 0) {
       const found = addReplyToComment(comment.replies, parentId, newComment)
       if (found) return true
@@ -95,14 +118,25 @@ const addReplyToComment = (commentsList: Comment[], parentId: number, newComment
   return false
 }
 
-const handleReply = async (postId: number, parentCommentId: number, content: string) => {
-  if (!authStore.accessToken) return
-  const [data, status] = await apiCreateComment(postId, parentCommentId, content, authStore.accessToken)
-  if (status === 200) {
-    const post = posts.value.find(p => p.id === postId)
+const handleReply = async (
+  postId: number,
+  parentCommentId: number,
+  content: string,
+  onComplete?: (success: boolean) => void
+) => {
+  if (!authStore.accessToken) {
+    if (onComplete) onComplete(false)
+    return
+  }
+  const { data, status } = await apiCreateComment(postId, parentCommentId, content)
+  if (status >= 200 && status < 300) {
+    const post = posts.value.find((p) => p.id === postId)
     if (post) {
       addReplyToComment(post.comments, parentCommentId, data)
     }
+    if (onComplete) onComplete(true)
+  } else {
+    if (onComplete) onComplete(false)
   }
 }
 </script>
@@ -111,7 +145,11 @@ const handleReply = async (postId: number, parentCommentId: number, content: str
   <div class="forum-container">
     <div class="header">
       <h1>Community Forum</h1>
-      <button v-if="authStore.isLoggedIn" class="btn-primary" @click="showNewPostForm = !showNewPostForm">
+      <button
+        v-if="authStore.isLoggedIn"
+        class="btn-primary"
+        @click="showNewPostForm = !showNewPostForm"
+      >
         {{ showNewPostForm ? 'Cancel' : 'Create Post' }}
       </button>
     </div>
@@ -121,14 +159,30 @@ const handleReply = async (postId: number, parentCommentId: number, content: str
       <h2>Create a new post</h2>
       <div class="input-wrapper">
         <input v-model="newPost.title" placeholder="Title" class="form-input" />
-        <span class="char-counter" :class="{ 'error': newPost.title.length > 255 }">{{ newPost.title.length }}/255</span>
+        <span class="char-counter" :class="{ error: newPost.title.length > 255 }"
+          >{{ newPost.title.length }}/255</span
+        >
       </div>
       <div class="input-wrapper">
-        <textarea v-model="newPost.content" placeholder="Text (optional)" class="form-input" rows="4"></textarea>
-        <span class="char-counter" :class="{ 'error': newPost.content.length > 2000 }">{{ newPost.content.length }}/2000</span>
+        <textarea
+          v-model="newPost.content"
+          placeholder="Text (optional)"
+          class="form-input"
+          rows="4"
+        ></textarea>
+        <span class="char-counter" :class="{ error: newPost.content.length > 2000 }"
+          >{{ newPost.content.length }}/2000</span
+        >
       </div>
+      <div v-if="createPostError" class="error-message">{{ createPostError }}</div>
       <div class="form-actions">
-        <button class="btn-primary" @click="createPost" :disabled="newPost.title.length > 255 || newPost.content.length > 2000">Post</button>
+        <button
+          class="btn-primary"
+          @click="createPost"
+          :disabled="isCreatingPost || newPost.title.length > 255 || newPost.content.length > 2000"
+        >
+          {{ isCreatingPost ? 'Posting...' : 'Post' }}
+        </button>
       </div>
     </div>
 
@@ -139,13 +193,27 @@ const handleReply = async (postId: number, parentCommentId: number, content: str
           <span class="author">Posted by u/{{ post.author }}</span>
           <span class="timestamp">{{ post.timestamp }}</span>
         </div>
-        
+
         <h2 class="title">{{ post.title }}</h2>
         <p class="content">{{ post.content }}</p>
 
         <div class="post-actions">
           <button class="action-btn" @click="post.showComments = !post.showComments">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path
+                d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"
+              ></path>
+            </svg>
             {{ post.comments.length }} Comments
           </button>
         </div>
@@ -154,13 +222,31 @@ const handleReply = async (postId: number, parentCommentId: number, content: str
         <div v-if="post.showComments" class="comments-section">
           <!-- Add Comment to Post -->
           <div v-if="authStore.isLoggedIn" class="add-comment">
-            <p>Comment as <strong>{{ getCurrentUsername() }}</strong></p>
+            <p>
+              Comment as <strong>{{ getCurrentUsername() }}</strong>
+            </p>
             <div class="input-wrapper">
-              <textarea v-model="post.newCommentContent" placeholder="What are your thoughts?" rows="3" class="form-input"></textarea>
-              <span class="char-counter" :class="{ 'error': (post.newCommentContent || '').length > 1000 }">{{ (post.newCommentContent || '').length }}/1000</span>
+              <textarea
+                v-model="post.newCommentContent"
+                placeholder="What are your thoughts?"
+                rows="3"
+                class="form-input"
+              ></textarea>
+              <span
+                class="char-counter"
+                :class="{ error: (post.newCommentContent || '').length > 1000 }"
+                >{{ (post.newCommentContent || '').length }}/1000</span
+              >
             </div>
+            <div v-if="post.commentError" class="error-message">{{ post.commentError }}</div>
             <div class="comment-btn-container">
-               <button class="btn-primary" @click="addComment(post)" :disabled="(post.newCommentContent || '').length > 1000">Comment</button>
+              <button
+                class="btn-primary"
+                @click="addComment(post)"
+                :disabled="(post.newCommentContent || '').length > 1000"
+              >
+                Comment
+              </button>
             </div>
           </div>
 
@@ -168,24 +254,37 @@ const handleReply = async (postId: number, parentCommentId: number, content: str
 
           <!-- Recursive Comments List -->
           <div class="comments-list">
-             <ForumComment 
-               v-for="comment in post.comments" 
-               :key="comment.id" 
-               :comment="comment" 
-               @reply="(parentId, content) => handleReply(post.id, parentId, content)" 
-             />
-             
-             <div v-if="post.comments.length === 0" class="no-comments">
-               No comments yet. Be the first to share your thoughts!
-             </div>
+            <ForumComment
+              v-for="comment in post.comments"
+              :key="comment.id"
+              :comment="comment"
+              @reply="
+                (parentId, content, onComplete) =>
+                  handleReply(post.id, parentId, content, onComplete)
+              "
+            />
+
+            <div v-if="post.comments.length === 0" class="no-comments">
+              No comments yet. Be the first to share your thoughts!
+            </div>
           </div>
         </div>
       </div>
+    </div>
+
+    <div v-if="currentPage < totalPages - 1" class="load-more-container">
+      <button class="btn-primary" @click="loadMorePosts">Load More</button>
     </div>
   </div>
 </template>
 
 <style scoped>
+.load-more-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
 .forum-container {
   max-width: 800px;
   margin: 0 auto;
@@ -260,6 +359,12 @@ const handleReply = async (postId: number, parentCommentId: number, content: str
 
 .char-counter.error {
   color: #ff4d4f;
+}
+
+.error-message {
+  color: #ff4d4f;
+  font-size: 0.85rem;
+  margin-bottom: 12px;
 }
 
 .form-actions {

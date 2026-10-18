@@ -117,7 +117,14 @@ describe('ForumComment.vue', () => {
     await wrapper.find('.btn-submit').trigger('click')
 
     expect(wrapper.emitted('reply')).toBeTruthy()
-    expect(wrapper.emitted('reply')![0]).toEqual([1, 'My replyFailed'])
+    expect(wrapper.emitted('reply')![0][0]).toEqual(1)
+    expect(wrapper.emitted('reply')![0][1]).toEqual('My reply')
+    
+    // Simulate the callback being called with success
+    const callback = wrapper.emitted('reply')![0][2] as (success: boolean) => void
+    callback(true)
+    await wrapper.vm.$nextTick()
+    
     expect(wrapper.find('.reply-input').exists()).toBe(false)
   })
 
@@ -167,6 +174,7 @@ describe('ForumComment.vue', () => {
     await childComment.find('.btn-submit').trigger('click')
     
     expect(wrapper.emitted('reply')).toBeTruthy()
-    expect(wrapper.emitted('reply')![0]).toEqual([2, 'Reply to child'])
+    expect(wrapper.emitted('reply')![0][0]).toEqual(2)
+    expect(wrapper.emitted('reply')![0][1]).toEqual('Reply to child')
   })
 })

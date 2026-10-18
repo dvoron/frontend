@@ -1,33 +1,41 @@
 <script setup lang="ts">
-import { reactive, ref } from "vue"
-import { createEmptyLoginUserDto, type LoginUserDto } from "@/dto/LoginUserDto";
-import { login } from "@/services/UserService"
-import { useAuthStore } from "@/stores/auth"
-import { useRouter } from "vue-router"
+import { reactive, ref } from 'vue'
+import { createEmptyLoginUserDto, type LoginUserDto } from '@/dto/LoginUserDto'
+import { login } from '@/services/UserService'
+import { useAuthStore } from '@/stores/auth'
+import { useRouter } from 'vue-router'
 
 const loginFormDto = reactive<LoginUserDto>(createEmptyLoginUserDto())
-const errorMessage = ref("")
-let passwordVisibilityType = ref("password")
+const errorMessage = ref('')
+const passwordVisibilityType = ref('password')
+const isPending = ref(false)
 
 const authStore = useAuthStore()
 const router = useRouter()
 
 async function onSignIn() {
-  errorMessage.value = ""
-  const [data, status] = await login(loginFormDto)
+  if (isPending.value) return
+  isPending.value = true
+  errorMessage.value = ''
 
-  if (status === 200) {
-    authStore.setTokens(data.accessToken)
-    router.push({ name: "home" })
-  } else if (status === 401) {
-    errorMessage.value = "Username or password is incorrect"
-  } else {
-    errorMessage.value = "Something went wrong. Please try again."
+  try {
+    const { data, status } = await login(loginFormDto)
+
+    if (status === 200) {
+      authStore.setTokens(data.accessToken)
+      router.push({ name: 'home' })
+    } else if (status === 401) {
+      errorMessage.value = 'Username or password is incorrect'
+    } else {
+      errorMessage.value = 'Something went wrong. Please try again.'
+    }
+  } finally {
+    isPending.value = false
   }
 }
 
 function changePasswordVisibility() {
-  passwordVisibilityType.value = passwordVisibilityType.value === "password" ? "text" : "password"
+  passwordVisibilityType.value = passwordVisibilityType.value === 'password' ? 'text' : 'password'
 }
 </script>
 
@@ -39,8 +47,9 @@ function changePasswordVisibility() {
       <p v-if="errorMessage" class="text-red-600 text-sm">{{ errorMessage }}</p>
 
       <div class="flex flex-col gap-1">
-        <label>Username or Email</label>
+        <label for="login-username">Username or Email</label>
         <input
+          id="login-username"
           v-model="loginFormDto.login"
           placeholder="Enter username or email"
           class="border rounded px-3 py-2"
@@ -48,24 +57,26 @@ function changePasswordVisibility() {
       </div>
 
       <div class="flex flex-col gap-1">
-        <label>Password</label>
+        <label for="login-password">Password</label>
         <input
+          id="login-password"
           v-model="loginFormDto.password"
           :type="passwordVisibilityType"
           placeholder="Enter password"
           class="border rounded px-3 py-2"
         />
-        <label class="flex items-center gap-2 text-sm">
-          <input type="checkbox" @change="changePasswordVisibility" />
+        <label class="flex items-center gap-2 text-sm" for="login-show-password">
+          <input id="login-show-password" type="checkbox" @change="changePasswordVisibility" />
           Show password
         </label>
       </div>
 
       <button
         type="submit"
-        class="bg-teal-500 hover:bg-teal-600 text-white font-semibold py-2 rounded"
+        :disabled="isPending"
+        class="bg-teal-500 hover:bg-teal-600 text-white font-semibold py-2 rounded disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        Sign In
+        {{ isPending ? 'Signing In...' : 'Sign In' }}
       </button>
     </form>
 

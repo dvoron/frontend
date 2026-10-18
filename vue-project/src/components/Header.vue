@@ -1,17 +1,17 @@
 <script setup lang="ts">
-import { useAuthStore } from "@/stores/auth"
-import { logout } from "@/services/UserService"
-import { useRouter } from "vue-router"
+import { useAuthStore } from '@/stores/auth'
+import { logout } from '@/services/UserService'
+import { useRouter } from 'vue-router'
 
 const authStore = useAuthStore()
 const router = useRouter()
 
 async function onLogout() {
   if (authStore.accessToken) {
-    await logout(authStore.accessToken)
+    await logout()
   }
   authStore.clearTokens()
-  router.push({ name: "login" })
+  router.push({ name: 'login' })
 }
 </script>
 

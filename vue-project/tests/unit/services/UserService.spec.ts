@@ -1,22 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import axios from 'axios'
 import { login, register, logout, getUserById, updateUser, deleteUser, refresh } from '@/services/UserService'
+import { request } from '@/utils/axios'
 
-vi.mock('axios', () => {
-  const mockAxios = {
-    get: vi.fn(),
-    post: vi.fn(),
-    put: vi.fn(),
-    delete: vi.fn(),
-    isAxiosError: vi.fn((err: any) => !!err?.isAxiosError),
-    create: vi.fn(function(this: any) { return this; }),
-    interceptors: {
-      request: { use: vi.fn() },
-      response: { use: vi.fn() }
-    }
-  }
-  return { default: mockAxios }
-})
+vi.mock('@/utils/axios', () => ({
+  request: vi.fn()
+}))
 
 describe('UserService', () => {
   beforeEach(() => {
@@ -26,222 +14,127 @@ describe('UserService', () => {
   describe('login', () => {
     it('should login successfully', async () => {
       const mockData = { token: '123' }
-      vi.mocked(axios.post).mockResolvedValueOnce({ data: mockData, status: 200 } as any)
+      vi.mocked(request).mockResolvedValueOnce({ data: mockData, status: 200, ok: true })
 
-      const [data, status] = await login({ login: 'user', password: 'password' })
+      const { data, status, ok } = await login({ login: 'user', password: 'password' })
 
-      expect(axios.post).toHaveBeenCalledWith('/api/auth/login', {
-        login: 'user',
-        password: 'password'
+      expect(request).toHaveBeenCalledWith({
+        method: 'POST',
+        url: '/api/auth/login',
+        data: {
+          login: 'user',
+          password: 'password'
+        }
       })
       expect(data).toEqual(mockData)
       expect(status).toBe(200)
-    })
-
-    it('should handle login error', async () => {
-      const mockError = { isAxiosError: true, response: { data: { message: 'Error' }, status: 401 } }
-      vi.mocked(axios.post).mockRejectedValueOnce(mockError as any)
-
-      const [data, status] = await login({ login: 'user', password: 'password' })
-
-      expect(data).toEqual(mockError.response.data)
-      expect(status).toBe(401)
-    })
-
-    it('should return 503 on network error', async () => {
-      vi.mocked(axios.post).mockRejectedValueOnce(new Error('Network Error'))
-
-      const [data, status] = await login({ login: 'user', password: 'password' })
-
-      expect(data).toEqual({ message: 'Network error occurred' })
-      expect(status).toBe(503)
+      expect(ok).toBe(true)
     })
   })
   
   describe('refresh', () => {
     it('should refresh successfully', async () => {
       const mockData = { token: 'new123' }
-      vi.mocked(axios.post).mockResolvedValueOnce({ data: mockData, status: 200 } as any)
+      vi.mocked(request).mockResolvedValueOnce({ data: mockData, status: 200, ok: true })
 
-      const [data, status] = await refresh()
+      const { data, status, ok } = await refresh()
 
-      expect(axios.post).toHaveBeenCalledWith('/api/auth/refresh', {})
+      expect(request).toHaveBeenCalledWith({
+        method: 'POST',
+        url: '/api/auth/refresh',
+        data: {}
+      })
       expect(data).toEqual(mockData)
       expect(status).toBe(200)
-    })
-
-    it('should handle refresh error', async () => {
-      const mockError = { isAxiosError: true, response: { data: { message: 'Unauthorized' }, status: 401 } }
-      vi.mocked(axios.post).mockRejectedValueOnce(mockError as any)
-
-      const [data, status] = await refresh()
-
-      expect(data).toEqual(mockError.response.data)
-      expect(status).toBe(401)
-    })
-
-    it('should return 503 on network error', async () => {
-      vi.mocked(axios.post).mockRejectedValueOnce(new Error('Network Error'))
-
-      const [data, status] = await refresh()
-
-      expect(data).toEqual({ message: 'Network error occurred' })
-      expect(status).toBe(503)
+      expect(ok).toBe(true)
     })
   })
 
   describe('register', () => {
     it('should register successfully', async () => {
       const mockData = { id: 1 }
-      vi.mocked(axios.post).mockResolvedValueOnce({ data: mockData, status: 201 } as any)
+      vi.mocked(request).mockResolvedValueOnce({ data: mockData, status: 201, ok: true })
 
-      const [data, status] = await register({ username: 'user', email: 'e@e.com', password: 'password' })
+      const { data, status, ok } = await register({ username: 'user', email: 'e@e.com', password: 'password' })
 
-      expect(axios.post).toHaveBeenCalledWith('/api/auth/register', {
-        username: 'user',
-        email: 'e@e.com',
-        password: 'password'
+      expect(request).toHaveBeenCalledWith({
+        method: 'POST',
+        url: '/api/auth/register',
+        data: {
+          username: 'user',
+          email: 'e@e.com',
+          password: 'password'
+        }
       })
       expect(data).toEqual(mockData)
       expect(status).toBe(201)
-    })
-
-    it('should handle register error', async () => {
-      const mockError = { isAxiosError: true, response: { data: { message: 'Error' }, status: 400 } }
-      vi.mocked(axios.post).mockRejectedValueOnce(mockError as any)
-
-      const [data, status] = await register({ username: 'user', email: 'e@e.com', password: 'password' })
-
-      expect(data).toEqual(mockError.response.data)
-      expect(status).toBe(400)
-    })
-
-    it('should return 503 on network error', async () => {
-      vi.mocked(axios.post).mockRejectedValueOnce(new Error('Network Error'))
-
-      const [data, status] = await register({ username: 'user', email: 'e@e.com', password: 'password' })
-
-      expect(data).toEqual({ message: 'Network error occurred' })
-      expect(status).toBe(503)
+      expect(ok).toBe(true)
     })
   })
 
   describe('logout', () => {
     it('should logout successfully', async () => {
-      vi.mocked(axios.post).mockResolvedValueOnce({} as any)
+      vi.mocked(request).mockResolvedValueOnce({ data: {}, status: 200, ok: true })
 
-      await logout('token123')
+      await logout()
 
-      expect(axios.post).toHaveBeenCalledWith('/api/auth/logout', {}, {
-        headers: { Authorization: 'Bearer token123' }
+      expect(request).toHaveBeenCalledWith({
+        method: 'POST',
+        url: '/api/auth/logout',
+        data: {}
       })
-    })
-
-    it('should ignore logout errors', async () => {
-      vi.mocked(axios.post).mockRejectedValueOnce(new Error('Network Error'))
-
-      await expect(logout('token123')).resolves.toBeUndefined()
     })
   })
 
   describe('getUserById', () => {
     it('should get user successfully', async () => {
       const mockData = { id: 1, name: 'user' }
-      vi.mocked(axios.get).mockResolvedValueOnce({ data: mockData, status: 200 } as any)
+      vi.mocked(request).mockResolvedValueOnce({ data: mockData, status: 200, ok: true })
 
-      const [data, status] = await getUserById(1, 'token123')
+      const { data, status, ok } = await getUserById(1)
 
-      expect(axios.get).toHaveBeenCalledWith('/api/1', {
-        headers: { Authorization: 'Bearer token123' }
+      expect(request).toHaveBeenCalledWith({
+        method: 'GET',
+        url: '/api/users/1'
       })
       expect(data).toEqual(mockData)
       expect(status).toBe(200)
-    })
-
-    it('should handle get user error', async () => {
-      const mockError = { isAxiosError: true, response: { data: { message: 'Not found' }, status: 404 } }
-      vi.mocked(axios.get).mockRejectedValueOnce(mockError as any)
-
-      const [data, status] = await getUserById(1, 'token123')
-
-      expect(data).toEqual(mockError.response.data)
-      expect(status).toBe(404)
-    })
-
-    it('should return 503 on network error', async () => {
-      vi.mocked(axios.get).mockRejectedValueOnce(new Error('Network Error'))
-
-      const [data, status] = await getUserById(1, 'token123')
-
-      expect(data).toEqual({ message: 'Network error occurred' })
-      expect(status).toBe(503)
+      expect(ok).toBe(true)
     })
   })
 
   describe('updateUser', () => {
     it('should update user successfully', async () => {
       const mockData = { id: 1, name: 'updated' }
-      vi.mocked(axios.put).mockResolvedValueOnce({ data: mockData, status: 200 } as any)
+      vi.mocked(request).mockResolvedValueOnce({ data: mockData, status: 200, ok: true })
 
-      const [data, status] = await updateUser(1, { name: 'updated' }, 'token123')
+      const { data, status, ok } = await updateUser(1, { name: 'updated' })
 
-      expect(axios.put).toHaveBeenCalledWith('/api/1', { name: 'updated' }, {
-        headers: { Authorization: 'Bearer token123' }
+      expect(request).toHaveBeenCalledWith({
+        method: 'PUT',
+        url: '/api/users/1',
+        data: { name: 'updated' }
       })
       expect(data).toEqual(mockData)
       expect(status).toBe(200)
-    })
-
-    it('should handle update user error', async () => {
-      const mockError = { isAxiosError: true, response: { data: { message: 'Error' }, status: 400 } }
-      vi.mocked(axios.put).mockRejectedValueOnce(mockError as any)
-
-      const [data, status] = await updateUser(1, { name: 'updated' }, 'token123')
-
-      expect(data).toEqual(mockError.response.data)
-      expect(status).toBe(400)
-    })
-
-    it('should return 503 on network error', async () => {
-      vi.mocked(axios.put).mockRejectedValueOnce(new Error('Network Error'))
-
-      const [data, status] = await updateUser(1, { name: 'updated' }, 'token123')
-
-      expect(data).toEqual({ message: 'Network error occurred' })
-      expect(status).toBe(503)
+      expect(ok).toBe(true)
     })
   })
 
   describe('deleteUser', () => {
     it('should delete user successfully', async () => {
-      vi.mocked(axios.delete).mockResolvedValueOnce({ data: null, status: 204 } as any)
+      vi.mocked(request).mockResolvedValueOnce({ data: null, status: 204, ok: true })
 
-      const [data, status] = await deleteUser(1, 'token123')
+      const { data, status, ok } = await deleteUser(1, 'password123')
 
-      expect(axios.delete).toHaveBeenCalledWith('/api/1', {
-        headers: { Authorization: 'Bearer token123' }
+      expect(request).toHaveBeenCalledWith({
+        method: 'DELETE',
+        url: '/api/users/1',
+        data: { password: 'password123' }
       })
       expect(data).toBeNull()
       expect(status).toBe(204)
-    })
-
-    it('should handle delete user error', async () => {
-      const mockError = { isAxiosError: true, response: { data: { message: 'Error' }, status: 403 } }
-      vi.mocked(axios.delete).mockRejectedValueOnce(mockError as any)
-
-      const [data, status] = await deleteUser(1, 'token123')
-
-      expect(data).toEqual(mockError.response.data)
-      expect(status).toBe(403)
-    })
-
-    it('should return 503 on network error', async () => {
-      vi.mocked(axios.delete).mockRejectedValueOnce(new Error('Network Error'))
-
-      const [data, status] = await deleteUser(1, 'token123')
-
-      expect(data).toEqual({ message: 'Network error occurred' })
-      expect(status).toBe(503)
+      expect(ok).toBe(true)
     })
   })
 })

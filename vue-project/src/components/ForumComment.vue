@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useAuthStore } from '@/stores/auth'
-import type { Comment } from '@/views/Forum.vue'
+import type { Comment } from '@/types/forum'
 
 const authStore = useAuthStore()
 
@@ -9,21 +9,35 @@ const props = defineProps<{
   comment: Comment
 }>()
 
-const emit = defineEmits(['reply'])
+const emit = defineEmits<{
+  (e: 'reply', parentId: number, content: string, onComplete: (success: boolean) => void): void
+}>()
 
 const showReplyInput = ref(false)
 const replyContent = ref('')
+const replyError = ref('')
 
 const submitReply = () => {
-  if (!replyContent.value.trim()) return;
-  if (replyContent.value.length > 1000) return;
-  emit('reply', props.comment.id, replyContent.value)
-  replyContent.value = ''
-  showReplyInput.value = false
+  if (!replyContent.value.trim()) return
+  if (replyContent.value.length > 1000) return
+
+  replyError.value = ''
+  emit('reply', props.comment.id, replyContent.value, (success: boolean) => {
+    if (success) {
+      replyContent.value = ''
+      showReplyInput.value = false
+    } else {
+      replyError.value = 'Failed to post reply. Please try again.'
+    }
+  })
 }
 
-const handleChildReply = (parentId: number, content: string) => {
-  emit('reply', parentId, content)
+const handleChildReply = (
+  parentId: number,
+  content: string,
+  onComplete: (success: boolean) => void
+) => {
+  emit('reply', parentId, content, onComplete)
 }
 </script>
 
@@ -36,7 +50,7 @@ const handleChildReply = (parentId: number, content: string) => {
     <div class="comment-content">
       {{ comment.content }}
     </div>
-    
+
     <div class="comment-actions" v-if="authStore.isLoggedIn">
       <button class="action-btn" @click="showReplyInput = !showReplyInput">Reply</button>
     </div>
@@ -44,20 +58,25 @@ const handleChildReply = (parentId: number, content: string) => {
     <div v-if="showReplyInput" class="reply-input">
       <div class="input-wrapper">
         <textarea v-model="replyContent" placeholder="Write a reply..." rows="2"></textarea>
-        <span class="char-counter" :class="{ 'error': replyContent.length > 1000 }">{{ replyContent.length }}/1000</span>
+        <span class="char-counter" :class="{ error: replyContent.length > 1000 }"
+          >{{ replyContent.length }}/1000</span
+        >
       </div>
+      <div v-if="replyError" class="error-message">{{ replyError }}</div>
       <div class="reply-actions">
-        <button class="btn-submit" @click="submitReply" :disabled="replyContent.length > 1000">Submit</button>
+        <button class="btn-submit" @click="submitReply" :disabled="replyContent.length > 1000">
+          Submit
+        </button>
         <button class="btn-cancel" @click="showReplyInput = false">Cancel</button>
       </div>
     </div>
 
     <div class="replies" v-if="comment.replies && comment.replies.length > 0">
-      <ForumComment 
-        v-for="reply in comment.replies" 
-        :key="reply.id" 
-        :comment="reply" 
-        @reply="handleChildReply" 
+      <ForumComment
+        v-for="reply in comment.replies"
+        :key="reply.id"
+        :comment="reply"
+        @reply="handleChildReply"
       />
     </div>
   </div>
@@ -146,12 +165,19 @@ textarea:focus {
   color: #ff4d4f;
 }
 
+.error-message {
+  color: #ff4d4f;
+  font-size: 0.85rem;
+  margin-bottom: 0.5rem;
+}
+
 .reply-actions {
   display: flex;
   gap: 10px;
 }
 
-.btn-submit, .btn-cancel {
+.btn-submit,
+.btn-cancel {
   padding: 5px 15px;
   border: none;
   border-radius: 4px;

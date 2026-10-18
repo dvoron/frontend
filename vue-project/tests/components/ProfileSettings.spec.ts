@@ -88,7 +88,7 @@ describe('ProfileSettings.vue', () => {
   })
 
   it('saves profile successfully without changing password', async () => {
-    vi.mocked(updateUser).mockResolvedValueOnce([{}, 200])
+    vi.mocked(updateUser).mockResolvedValueOnce({ data: {}, status: 200, ok: true } as any)
     
     const wrapper = mountComponent()
     const store = useAuthStore()
@@ -103,7 +103,7 @@ describe('ProfileSettings.vue', () => {
     
     await wrapper.find('form').trigger('submit.prevent')
     
-    expect(updateUser).toHaveBeenCalledWith(1, { username: 'updateduser', email: 'updateemail' }, expect.any(String))
+    expect(updateUser).toHaveBeenCalledWith(1, { username: 'updateduser', email: 'updateemail' })
     await new Promise(resolve => setTimeout(resolve, 0))
     expect(wrapper.text()).toContain('Profile updated successfully!')
     expect(wrapper.emitted('profileUpdated')).toBeTruthy()
@@ -126,7 +126,7 @@ describe('ProfileSettings.vue', () => {
   })
 
   it('saves profile successfully with password change', async () => {
-    vi.mocked(updateUser).mockResolvedValueOnce([{}, 200])
+    vi.mocked(updateUser).mockResolvedValueOnce({ data: {}, status: 200, ok: true } as any)
     
     const wrapper = mountComponent()
     const store = useAuthStore()
@@ -147,14 +147,14 @@ describe('ProfileSettings.vue', () => {
       email: 'test@example.com',
       oldPassword: 'oldpass',
       newPassword: 'newpass'
-    }, expect.any(String))
+    })
     
     await new Promise(resolve => setTimeout(resolve, 0))
     expect(wrapper.text()).toContain('Profile updated successfully!')
   })
 
   it('shows error if profile update fails', async () => {
-    vi.mocked(updateUser).mockResolvedValueOnce([{ message: 'Update failed' }, 400])
+    vi.mocked(updateUser).mockResolvedValueOnce({ data: { message: 'Update failed' }, status: 400, ok: false } as any)
     
     const wrapper = mountComponent()
     const store = useAuthStore()
@@ -169,7 +169,7 @@ describe('ProfileSettings.vue', () => {
   })
 
   it('shows error if profile update fails without errorMessage', async () => {
-    vi.mocked(updateUser).mockResolvedValueOnce([{}])
+    vi.mocked(updateUser).mockResolvedValueOnce({ data: {}, status: 500, ok: false } as any)
 
     const wrapper = mountComponent()
     const store = useAuthStore()
