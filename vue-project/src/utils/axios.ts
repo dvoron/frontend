@@ -31,17 +31,17 @@ apiClient.interceptors.request.use(
 const sanitizeLogData = (data: any): any => {
   if (!data) return data
   if (typeof data !== 'object') return data
-  
+
   if (Array.isArray(data)) {
-    return data.map(item => sanitizeLogData(item))
+    return data.map((item) => sanitizeLogData(item))
   }
-  
+
   const sanitized = { ...data }
   const sensitiveKeys = ['password', 'token', 'secret', 'authorization', 'credentials']
-  
+
   for (const key of Object.keys(sanitized)) {
     const lowerKey = key.toLowerCase()
-    if (sensitiveKeys.some(k => lowerKey.includes(k))) {
+    if (sensitiveKeys.some((k) => lowerKey.includes(k))) {
       sanitized[key] = '[REDACTED]'
     } else if (typeof sanitized[key] === 'object' && sanitized[key] !== null) {
       sanitized[key] = sanitizeLogData(sanitized[key])
