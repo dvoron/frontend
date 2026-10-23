@@ -211,6 +211,7 @@ describe('Profile.vue Integration', () => {
     // Change username and email
     await wrapper.find('input#username').setValue('updateduser')
     await wrapper.find('input#email').setValue('updated@example.com')
+    await wrapper.find('input#oldPassword').setValue('password123')
     
     // Save
     await wrapper.find('form').trigger('submit.prevent')

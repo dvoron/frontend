@@ -99,15 +99,33 @@ describe('ProfileSettings.vue', () => {
     const usernameInput = wrapper.find('#username')
     await usernameInput.setValue('updateduser')
     const emailInput = wrapper.find('#email')
-    await emailInput.setValue('updateemail')
+    await emailInput.setValue('updateemail@example.com')
+    
+    const oldPasswordInput = wrapper.find('#oldPassword')
+    await oldPasswordInput.setValue('oldpass')
     
     await wrapper.find('form').trigger('submit.prevent')
     
-    expect(updateUser).toHaveBeenCalledWith(1, { username: 'updateduser', email: 'updateemail' })
+    expect(updateUser).toHaveBeenCalledWith(1, { username: 'updateduser', email: 'updateemail@example.com', oldPassword: 'oldpass' })
     await new Promise(resolve => setTimeout(resolve, 0))
     expect(wrapper.text()).toContain('Profile updated successfully!')
     expect(wrapper.emitted('profileUpdated')).toBeTruthy()
-    expect(wrapper.emitted('profileUpdated')![0]).toEqual([{ username: 'updateduser', email: 'updateemail' }])
+    expect(wrapper.emitted('profileUpdated')![0]).toEqual([{ username: 'updateduser', email: 'updateemail@example.com' }])
+  })
+
+  it('shows error if email is changed without old password', async () => {
+    const wrapper = mountComponent()
+    const store = useAuthStore()
+    store.setTokens('mock-token')
+    store.accessToken = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' })) + '.' + btoa(JSON.stringify({ sub: 1, username: 'testuser' })) + '.signature'
+    await wrapper.find('button').trigger('click')
+    
+    const emailInput = wrapper.find('#email')
+    await emailInput.setValue('newemail@example.com')
+    
+    await wrapper.find('form').trigger('submit.prevent')
+    
+    expect(wrapper.text()).toContain('Please enter your current password to save these changes.')
   })
 
   it('shows error if new password is provided without old password', async () => {
@@ -122,7 +140,7 @@ describe('ProfileSettings.vue', () => {
     
     await wrapper.find('form').trigger('submit.prevent')
     
-    expect(wrapper.text()).toContain('Please enter your old password to set a new one.')
+    expect(wrapper.text()).toContain('Please enter your current password to save these changes.')
   })
 
   it('saves profile successfully with password change', async () => {
