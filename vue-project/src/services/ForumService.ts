@@ -47,3 +47,10 @@ export async function getUserComments(userId: number) {
     url: `/api/forum/users/${userId}/comments`
   })
 }
+
+export async function getCommentReplies(commentId: number) {
+  return request({
+    method: 'GET',
+    url: `/api/forum/comments/${commentId}/replies`
+  })
+}

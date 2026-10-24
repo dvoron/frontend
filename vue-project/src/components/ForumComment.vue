@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useAuthStore } from '@/stores/auth'
+import { getCommentReplies } from '@/services/ForumService'
 import type { Comment } from '@/types/forum'
 
 const authStore = useAuthStore()
@@ -16,6 +17,26 @@ const emit = defineEmits<{
 const showReplyInput = ref(false)
 const replyContent = ref('')
 const replyError = ref('')
+const isLoadingReplies = ref(false)
+
+const toggleReplies = async () => {
+  if (props.comment.repliesLoaded) {
+    props.comment.showReplies = !props.comment.showReplies
+    return
+  }
+
+  isLoadingReplies.value = true
+  try {
+    const { data, status } = await getCommentReplies(props.comment.id)
+    if (status >= 200 && status < 300) {
+      props.comment.replies = data
+      props.comment.repliesLoaded = true
+      props.comment.showReplies = true
+    }
+  } finally {
+    isLoadingReplies.value = false
+  }
+}
 
 const submitReply = () => {
   if (!replyContent.value.trim()) return
@@ -51,8 +72,16 @@ const handleChildReply = (
       {{ comment.content }}
     </div>
 
-    <div class="comment-actions" v-if="authStore.isLoggedIn">
-      <button class="action-btn" @click="showReplyInput = !showReplyInput">Reply</button>
+    <div class="comment-actions">
+      <button v-if="authStore.isLoggedIn" class="action-btn" @click="showReplyInput = !showReplyInput">Reply</button>
+      <button 
+        v-if="comment.replyCount && comment.replyCount > 0" 
+        class="action-btn" 
+        @click="toggleReplies"
+        :disabled="isLoadingReplies"
+      >
+        {{ isLoadingReplies ? 'Loading...' : (comment.showReplies ? 'Hide Replies' : 'Load Replies') }}
+      </button>
     </div>
 
     <div v-if="showReplyInput" class="reply-input">
@@ -71,7 +100,7 @@ const handleChildReply = (
       </div>
     </div>
 
-    <div class="replies" v-if="comment.replies && comment.replies.length > 0">
+    <div class="replies" v-if="comment.showReplies && comment.replies && comment.replies.length > 0">
       <ForumComment
         v-for="reply in comment.replies"
         :key="reply.id"
@@ -108,6 +137,12 @@ const handleChildReply = (
   margin-bottom: 0.5rem;
   color: #e0e0e0;
   line-height: 1.4;
+}
+
+.comment-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
 }
 
 .action-btn {

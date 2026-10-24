@@ -107,6 +107,9 @@ const addReplyToComment = (
     if (comment.id === parentId) {
       if (!comment.replies) comment.replies = []
       comment.replies.push(newComment)
+      comment.replyCount = (comment.replyCount || 0) + 1
+      comment.repliesLoaded = true
+      comment.showReplies = true
       return true
     }
 

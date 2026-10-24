@@ -4,6 +4,9 @@ export interface Comment {
   timestamp: string
   content: string
   replies?: Comment[]
+  replyCount?: number
+  showReplies?: boolean
+  repliesLoaded?: boolean
 }
 
 export interface Post {
