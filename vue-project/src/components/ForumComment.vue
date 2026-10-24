@@ -19,6 +19,17 @@ const replyContent = ref('')
 const replyError = ref('')
 const isLoadingReplies = ref(false)
 
+const setRepliesLoadedRecursive = (comments: Comment[]) => {
+  if (!comments) return
+  for (const comment of comments) {
+    if (comment.replies && comment.replies.length > 0) {
+      comment.repliesLoaded = true
+      comment.showReplies = true
+      setRepliesLoadedRecursive(comment.replies)
+    }
+  }
+}
+
 const toggleReplies = async () => {
   if (props.comment.repliesLoaded) {
     props.comment.showReplies = !props.comment.showReplies
@@ -32,6 +43,9 @@ const toggleReplies = async () => {
       props.comment.replies = data
       props.comment.repliesLoaded = true
       props.comment.showReplies = true
+      if (props.comment.replies) {
+        setRepliesLoadedRecursive(props.comment.replies)
+      }
     }
   } finally {
     isLoadingReplies.value = false

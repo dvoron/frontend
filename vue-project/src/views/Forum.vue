@@ -21,11 +21,23 @@ const posts = ref<Post[]>([])
 const currentPage = ref(0)
 const totalPages = ref(1)
 
+const setRepliesLoadedRecursive = (comments: Comment[]) => {
+  if (!comments) return
+  for (const comment of comments) {
+    if (comment.replies && comment.replies.length > 0) {
+      comment.repliesLoaded = true
+      comment.showReplies = true
+      setRepliesLoadedRecursive(comment.replies)
+    }
+  }
+}
+
 const loadPosts = async (loadMore = false) => {
   const { data, status } = await getAllPosts(currentPage.value)
   if (status >= 200 && status < 300) {
     data.content.forEach((post: Post) => {
       post.comments = post.comments || []
+      setRepliesLoadedRecursive(post.comments)
     })
     if (loadMore) {
       posts.value.push(...data.content)
