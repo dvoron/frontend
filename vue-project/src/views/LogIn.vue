@@ -26,6 +26,8 @@ async function onSignIn() {
       router.push({ name: 'home' })
     } else if (status === 401) {
       errorMessage.value = 'Username or password is incorrect'
+    } else if (status === 429) {
+      errorMessage.value = data?.message || 'Account locked due to too many failed login attempts'
     } else {
       errorMessage.value = 'Something went wrong. Please try again.'
     }
