@@ -100,6 +100,11 @@ const handleSave = async () => {
   }
 
   if (user.value.newPassword) {
+    if (user.value.newPassword.length < 8) {
+      errorMessage.value = 'New password must be at least 8 characters long.'
+      isSaving.value = false
+      return
+    }
     updateData.newPassword = user.value.newPassword
   }
 

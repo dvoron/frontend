@@ -153,18 +153,18 @@ describe('ProfileSettings.vue', () => {
     await wrapper.find('button').trigger('click')
     
     const oldPasswordInput = wrapper.find('#oldPassword')
-    await oldPasswordInput.setValue('oldpass')
+    await oldPasswordInput.setValue('oldpass123')
     
     const newPasswordInput = wrapper.find('#newPassword')
-    await newPasswordInput.setValue('newpass')
+    await newPasswordInput.setValue('newpass123')
     
     await wrapper.find('form').trigger('submit.prevent')
     
     expect(updateUser).toHaveBeenCalledWith(1, {
       username: 'testuser',
       email: 'test@example.com',
-      oldPassword: 'oldpass',
-      newPassword: 'newpass'
+      oldPassword: 'oldpass123',
+      newPassword: 'newpass123'
     })
     
     await new Promise(resolve => setTimeout(resolve, 0))

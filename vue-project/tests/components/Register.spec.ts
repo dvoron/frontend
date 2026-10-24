@@ -41,8 +41,8 @@ describe('Register.vue', () => {
   })
 
   it('handles successful registration', async () => {
-    // Note: The component checks for status 200 instead of 201 for success
-    vi.mocked(register).mockResolvedValueOnce({ data: { accessToken: 'token', refreshToken: 'refresh' }, status: 200, ok: true } as any)
+    // Note: The backend now returns 201 CREATED for success
+    vi.mocked(register).mockResolvedValueOnce({ data: { accessToken: 'token', refreshToken: 'refresh' }, status: 201, ok: true } as any)
     
     const wrapper = mountComponent()
     await wrapper.find('input[placeholder="Username"]').setValue('testuser')

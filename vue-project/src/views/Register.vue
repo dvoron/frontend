@@ -41,6 +41,9 @@ async function submit() {
   if (!registerForm.password) {
     passwordError.value = 'Password is required'
     hasError = true
+  } else if (registerForm.password.length < 8) {
+    passwordError.value = 'Password must be at least 8 characters long'
+    hasError = true
   }
 
   if (hasError) {
@@ -51,7 +54,7 @@ async function submit() {
   try {
     const { data, status } = await register(registerForm)
 
-    if (status === 200) {
+    if (status >= 200 && status < 300) {
       authStore.setTokens(data.accessToken)
       router.push({ name: 'home' })
     } else if (status === 409) {
