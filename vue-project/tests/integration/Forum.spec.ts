@@ -28,13 +28,10 @@ describe('Forum.vue Integration', () => {
   it('Load Posts', async () => {
     server.use(
       http.get('/api/forum/posts', () => {
-        return HttpResponse.json({
-          content: [
-            { id: 1, title: 'First Post', content: 'This is the first post', author: 'user1', timestamp: '1h ago', comments: [] },
-            { id: 2, title: 'Second Post', content: 'This is the second post', author: 'user2', timestamp: '2h ago', comments: [] }
-          ],
-          totalPages: 1
-        })
+        return HttpResponse.json([
+          { id: 1, title: 'First Post', content: 'This is the first post', author: 'user1', timestamp: '1h ago', comments: [] },
+          { id: 2, title: 'Second Post', content: 'This is the second post', author: 'user2', timestamp: '2h ago', comments: [] }
+        ])
       })
     )
 
@@ -56,12 +53,9 @@ describe('Forum.vue Integration', () => {
   it('Create Post', async () => {
     server.use(
       http.get('/api/forum/posts', () => {
-        return HttpResponse.json({
-          content: [
-            { id: 1, title: 'First Post', content: 'This is the first post', author: 'user1', timestamp: '1h ago', comments: [] }
-          ],
-          totalPages: 1
-        })
+        return HttpResponse.json([
+          { id: 1, title: 'First Post', content: 'This is the first post', author: 'user1', timestamp: '1h ago', comments: [] }
+        ])
       }),
       http.post('/api/forum/posts', async ({ request }) => {
         const data = (await request.json()) as Record<string, any>
@@ -100,12 +94,9 @@ describe('Forum.vue Integration', () => {
   it('Add Comment', async () => {
     server.use(
       http.get('/api/forum/posts', () => {
-        return HttpResponse.json({
-          content: [
-            { id: 1, title: 'First Post', content: 'This is the first post', author: 'user1', timestamp: '1h ago', comments: [] }
-          ],
-          totalPages: 1
-        })
+        return HttpResponse.json([
+          { id: 1, title: 'First Post', content: 'This is the first post', author: 'user1', timestamp: '1h ago', comments: [] }
+        ])
       }),
       http.post('/api/forum/comments', async ({ request }) => {
         const data = (await request.json()) as Record<string, any>
@@ -140,12 +131,9 @@ describe('Forum.vue Integration', () => {
   it('displays Guest when username is not in token', async () => {
     server.use(
       http.get('/api/forum/posts', () => {
-        return HttpResponse.json({
-          content: [
-            { id: 1, title: 'First Post', content: 'This is the first post', author: 'user1', timestamp: '1h ago', comments: [] }
-          ],
-          totalPages: 1
-        })
+        return HttpResponse.json([
+          { id: 1, title: 'First Post', content: 'This is the first post', author: 'user1', timestamp: '1h ago', comments: [] }
+        ])
       })
     )
 
@@ -168,12 +156,9 @@ describe('Forum.vue Integration', () => {
     server.use(
       http.get('/api/forum/posts', () => {
         getPostsMock()
-        return HttpResponse.json({
-          content: [
-            { id: 1, title: 'Public Post', content: 'Public content', author: 'user1', timestamp: '1h ago', comments: [] }
-          ],
-          totalPages: 1
-        })
+        return HttpResponse.json([
+          { id: 1, title: 'Public Post', content: 'Public content', author: 'user1', timestamp: '1h ago', comments: [] }
+        ])
       })
     )
 
@@ -192,7 +177,7 @@ describe('Forum.vue Integration', () => {
   it('createPost early returns on invalid inputs or missing token', async () => {
     const createPostMock = vi.fn()
     server.use(
-      http.get('/api/forum/posts', () => HttpResponse.json({ content: [], totalPages: 1 })),
+      http.get('/api/forum/posts', () => HttpResponse.json([])),
       http.post('/api/forum/posts', () => {
         createPostMock()
         return HttpResponse.json({})
@@ -234,12 +219,9 @@ describe('Forum.vue Integration', () => {
     const createCommentMock = vi.fn()
     server.use(
       http.get('/api/forum/posts', () => {
-        return HttpResponse.json({
-          content: [
-            { id: 1, title: 'First Post', content: 'This is the first post', author: 'user1', timestamp: '1h ago', comments: [] }
-          ],
-          totalPages: 1
-        })
+        return HttpResponse.json([
+          { id: 1, title: 'First Post', content: 'This is the first post', author: 'user1', timestamp: '1h ago', comments: [] }
+        ])
       }),
       http.post('/api/forum/comments', () => {
         createCommentMock()
@@ -276,30 +258,27 @@ describe('Forum.vue Integration', () => {
   it('handleReply and addReplyToComment (lines 83-108)', async () => {
     server.use(
       http.get('/api/forum/posts', () => {
-        return HttpResponse.json({
-          content: [
-            { 
-              id: 1, 
-              title: 'Post with Comments', 
-              content: 'Content', 
-              author: 'user1', 
-              timestamp: '1h ago', 
-              comments: [
-                { id: 10, author: 'user2', timestamp: '30m ago', content: 'Top level comment', replies: [] },
-                { 
-                  id: 11, 
-                  author: 'user3', 
-                  timestamp: '20m ago', 
-                  content: 'Another top level', 
-                  replies: [
-                    { id: 12, author: 'user4', timestamp: '10m ago', content: 'Nested comment', replies: [] }
-                  ] 
-                }
-              ] 
-            }
-          ],
-          totalPages: 1
-        })
+        return HttpResponse.json([
+          { 
+            id: 1, 
+            title: 'Post with Comments', 
+            content: 'Content', 
+            author: 'user1', 
+            timestamp: '1h ago', 
+            comments: [
+              { id: 10, author: 'user2', timestamp: '30m ago', content: 'Top level comment', replies: [] },
+              { 
+                id: 11, 
+                author: 'user3', 
+                timestamp: '20m ago', 
+                content: 'Another top level', 
+                replies: [
+                  { id: 12, author: 'user4', timestamp: '10m ago', content: 'Nested comment', replies: [] }
+                ] 
+              }
+            ] 
+          }
+        ])
       }),
       http.post('/api/forum/comments', async ({ request }) => {
         const data = (await request.json()) as Record<string, any>

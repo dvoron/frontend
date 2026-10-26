@@ -9,9 +9,14 @@ import Register from "@/views/Register.vue";
 import {useAuthStore} from "@/stores/auth";
 // import { useAuthStore } from '@/stores/auth'
 
-vi.mock('vue-router', () => ({
-  useRouter: vi.fn()
-}))
+vi.mock('vue-router', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('vue-router')>()
+  return {
+    ...actual,
+    useRouter: vi.fn(),
+    useRoute: vi.fn(() => ({ query: {} }))
+  }
+})
 
 describe('Register.vue Integration', () => {
   const mockPush = vi.fn()

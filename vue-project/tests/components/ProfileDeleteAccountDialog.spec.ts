@@ -12,9 +12,14 @@ vi.mock('@/services/UserService', () => ({
   deleteUser: vi.fn()
 }))
 
-vi.mock('vue-router', () => ({
-  useRouter: vi.fn(() => ({ push: vi.fn() }))
-}))
+vi.mock('vue-router', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('vue-router')>()
+  return {
+    ...actual,
+    useRouter: vi.fn(() => ({ push: vi.fn() })),
+    useRoute: vi.fn(() => ({ query: {} }))
+  }
+})
 
 describe('ProfileDeleteAccountDialog.vue', () => {
   beforeEach(() => {

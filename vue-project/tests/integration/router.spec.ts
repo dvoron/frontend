@@ -26,8 +26,7 @@ import { useAuthStore } from '@/stores/auth'
 
 describe('Router Navigation Guards', () => {
   beforeEach(() => {
-    // main.ts already creates and activates pinia, but we can reset it if needed
-    // setActivePinia(createPinia())
+    setActivePinia(createPinia())
   })
 
   it('redirects to login when accessing profile unauthenticated', async () => {

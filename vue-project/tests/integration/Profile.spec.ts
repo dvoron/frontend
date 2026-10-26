@@ -10,9 +10,14 @@ import Profile from "@/views/Profile.vue";
 import ProfileActivityList from '@/components/ProfileActivityList.vue'
 // import { useAuthStore } from '@/stores/auth'
 
-vi.mock('vue-router', () => ({
-  useRouter: vi.fn()
-}))
+vi.mock('vue-router', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('vue-router')>()
+  return {
+    ...actual,
+    useRouter: vi.fn(),
+    useRoute: vi.fn(() => ({ query: {} }))
+  }
+})
 
 vi.mock('@/main', () => ({
   default: {

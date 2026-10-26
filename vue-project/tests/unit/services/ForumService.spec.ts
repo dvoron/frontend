@@ -20,7 +20,7 @@ describe('ForumService', () => {
 
       expect(request).toHaveBeenCalledWith({
         method: 'GET',
-        url: '/api/forum/posts?page=0&size=10'
+        url: '/api/forum/posts?size=10'
       })
       expect(data).toEqual(mockData)
       expect(status).toBe(200)
