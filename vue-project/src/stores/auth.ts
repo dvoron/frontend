@@ -2,6 +2,8 @@ import { defineStore } from 'pinia'
 import { jwtDecode } from 'jwt-decode'
 import { refresh } from '@/services/UserService'
 
+let refreshPromise: Promise<boolean> | null = null
+
 export const useAuthStore = defineStore('auth', {
   state: () => ({
     accessToken: null as string | null
@@ -36,12 +38,24 @@ export const useAuthStore = defineStore('auth', {
       this.accessToken = null
     },
     async tryRefresh() {
-      const { data, status } = await refresh()
-      if (status === 200 && data.accessToken) {
-        this.setTokens(data.accessToken)
-        return true
+      if (refreshPromise) {
+        return refreshPromise
       }
-      return false
+
+      refreshPromise = (async () => {
+        try {
+          const { data, status } = await refresh()
+          if (status === 200 && data.accessToken) {
+            this.setTokens(data.accessToken)
+            return true
+          }
+          return false
+        } finally {
+          refreshPromise = null
+        }
+      })()
+
+      return refreshPromise
     }
   }
 })
