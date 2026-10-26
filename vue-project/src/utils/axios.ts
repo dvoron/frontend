@@ -50,6 +50,29 @@ const sanitizeLogData = (data: any): any => {
   return sanitized
 }
 
+const shouldSkipRefresh = (config: import('axios').InternalAxiosRequestConfig) => {
+  const url = config.url || ''
+  if (url.startsWith('/api/auth/')) return true
+
+  if (url.match(/^\/api\/users\/\d+$/)) {
+    const method = config.method?.toLowerCase()
+    if (method === 'put' || method === 'delete') {
+      if (config.data) {
+        try {
+          const data = typeof config.data === 'string' ? JSON.parse(config.data) : config.data
+          if (data && (data.oldPassword || data.password)) {
+            return true
+          }
+        } catch (e) {
+          // Ignore parse errors
+        }
+      }
+    }
+  }
+
+  return false
+}
+
 apiClient.interceptors.response.use(
   (response) => {
     logger.debug(`API Response: ${response.status} ${response.config.url}`)
@@ -67,7 +90,7 @@ apiClient.interceptors.response.use(
       if (
         error.response.status === 401 &&
         !originalRequest._retry &&
-        originalRequest.url !== '/api/auth/refresh'
+        !shouldSkipRefresh(originalRequest)
       ) {
         originalRequest._retry = true
 
