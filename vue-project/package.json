@@ -9,7 +9,7 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "vue-tsc --noEmit && vite build",
+    "build": "vue-tsc --build && vite build",
     "preview": "vite preview",
     "test:unit": "vitest",
     "test:coverage": "vitest run --coverage",
@@ -31,7 +31,8 @@
   "devDependencies": {
     "@pinia/testing": "^2.0.1",
     "@rushstack/eslint-patch": "^1.16.1",
-    "@tsconfig/node26": "^26.0.1",
+    "@tsconfig/node22": "^22.0.6",
+    "@types/jsdom": "^30.0.0",
     "@vitejs/plugin-vue": "^6.0.2",
     "@vitest/coverage-v8": "^5.0.1",
     "@vue/eslint-config-prettier": "^8.0.0",

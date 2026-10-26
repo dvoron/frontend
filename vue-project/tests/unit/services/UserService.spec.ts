@@ -108,12 +108,12 @@ describe('UserService', () => {
       const mockData = { id: 1, name: 'updated' }
       vi.mocked(request).mockResolvedValueOnce({ data: mockData, status: 200, ok: true })
 
-      const { data, status, ok } = await updateUser(1, { name: 'updated' })
+      const { data, status, ok } = await updateUser(1, { username: 'updated', email: 'e@e.com' })
 
       expect(request).toHaveBeenCalledWith({
         method: 'PUT',
         url: '/api/users/1',
-        data: { name: 'updated' }
+        data: { username: 'updated', email: 'e@e.com' }
       })
       expect(data).toEqual(mockData)
       expect(status).toBe(200)

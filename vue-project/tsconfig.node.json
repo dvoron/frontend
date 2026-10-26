@@ -1,5 +1,5 @@
 {
-  "extends": "@tsconfig/node26/tsconfig.json",
+  "extends": "@tsconfig/node22/tsconfig.json",
   "include": [
     "vite.config.*",
     "vitest.config.*",
@@ -8,6 +8,7 @@
   ],
   "compilerOptions": {
     "composite": true,
+    "noEmit": true,
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "types": ["node"]

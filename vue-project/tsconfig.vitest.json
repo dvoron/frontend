@@ -1,9 +1,10 @@
 {
   "extends": "./tsconfig.app.json",
-  "include": ["tests/**/*", "src/**/*"],
+  "include": ["env.d.ts", "tests/**/*", "src/**/*"],
   "exclude": [],
   "compilerOptions": {
     "composite": true,
+    "noEmit": true,
     "types": ["node", "jsdom"]
   }
 }
