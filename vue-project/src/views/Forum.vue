@@ -18,8 +18,7 @@ const getCurrentUsername = () => {
 
 // State for posts
 const posts = ref<Post[]>([])
-const currentPage = ref(0)
-const totalPages = ref(1)
+const hasMore = ref(true)
 
 const setRepliesLoadedRecursive = (comments: Comment[]) => {
   if (!comments) return
@@ -33,24 +32,24 @@ const setRepliesLoadedRecursive = (comments: Comment[]) => {
 }
 
 const loadPosts = async (loadMore = false) => {
-  const { data, status } = await getAllPosts(currentPage.value)
+  const cursor = loadMore && posts.value.length > 0 ? posts.value[posts.value.length - 1].id : undefined
+  const { data, status } = await getAllPosts(cursor)
   if (status >= 200 && status < 300) {
-    data.content.forEach((post: Post) => {
+    data.forEach((post: Post) => {
       post.comments = post.comments || []
       setRepliesLoadedRecursive(post.comments)
     })
     if (loadMore) {
-      posts.value.push(...data.content)
+      posts.value.push(...data)
     } else {
-      posts.value = data.content
+      posts.value = data
     }
-    totalPages.value = data.totalPages
+    hasMore.value = data.length === 10
   }
 }
 
 const loadMorePosts = () => {
-  if (currentPage.value < totalPages.value - 1) {
-    currentPage.value++
+  if (hasMore.value) {
     loadPosts(true)
   }
 }
@@ -287,7 +286,7 @@ const handleReply = async (
       </div>
     </div>
 
-    <div v-if="currentPage < totalPages - 1" class="load-more-container">
+    <div v-if="hasMore" class="load-more-container">
       <button class="btn-primary" @click="loadMorePosts">Load More</button>
     </div>
   </div>
