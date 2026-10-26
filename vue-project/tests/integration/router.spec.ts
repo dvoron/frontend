@@ -21,7 +21,7 @@ const appDiv = document.createElement('div')
 appDiv.id = 'app'
 document.body.appendChild(appDiv)
 
-import router from '@/main'
+import router from '@/router'
 import { useAuthStore } from '@/stores/auth'
 
 describe('Router Navigation Guards', () => {

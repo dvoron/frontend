@@ -1,5 +1,6 @@
 import axios from 'axios'
 import logger from '@/utils/logger'
+import router from '@/router'
 import { useAuthStore } from '@/stores/auth'
 
 const apiClient = axios.create({
@@ -142,13 +143,11 @@ apiClient.interceptors.response.use(
             return apiClient(originalRequest)
           } else {
             auth.clearTokens()
-            const { default: router } = await import('@/main')
             router.push({ name: 'login' })
           }
         } catch (refreshError) {
           const auth = useAuthStore()
           auth.clearTokens()
-          const { default: router } = await import('@/main')
           router.push({ name: 'login' })
         }
       }
