@@ -55,12 +55,14 @@ app.use(pinia)
 
 import logger from '@/utils/logger'
 
+import { sanitizeAxiosError } from '@/utils/axios'
+
 app.config.errorHandler = (err, instance, info) => {
-  logger.error('Vue Error:', err, info)
+  logger.error('Vue Error:', sanitizeAxiosError(err), info)
 }
 
 window.addEventListener('unhandledrejection', (event) => {
-  logger.error('Unhandled Promise Rejection:', event.reason)
+  logger.error('Unhandled Promise Rejection:', sanitizeAxiosError(event.reason))
 })
 
 const auth = useAuthStore()
