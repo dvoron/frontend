@@ -143,12 +143,12 @@ apiClient.interceptors.response.use(
             return apiClient(originalRequest)
           } else {
             auth.clearTokens()
-            router.push({ name: 'login' })
+            router.push({ name: 'login', query: { redirect: router.currentRoute.value.fullPath } })
           }
         } catch (refreshError) {
           const auth = useAuthStore()
           auth.clearTokens()
-          router.push({ name: 'login' })
+          router.push({ name: 'login', query: { redirect: router.currentRoute.value.fullPath } })
         }
       }
     } else if (error.request) {

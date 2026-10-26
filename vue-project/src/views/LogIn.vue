@@ -3,7 +3,7 @@ import { reactive, ref } from 'vue'
 import { createEmptyLoginUserDto, type LoginUserDto } from '@/dto/LoginUserDto'
 import { login } from '@/services/UserService'
 import { useAuthStore } from '@/stores/auth'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 
 const loginFormDto = reactive<LoginUserDto>(createEmptyLoginUserDto())
 const errorMessage = ref('')
@@ -12,6 +12,7 @@ const isPending = ref(false)
 
 const authStore = useAuthStore()
 const router = useRouter()
+const route = useRoute()
 
 async function onSignIn() {
   if (isPending.value) return
@@ -23,7 +24,12 @@ async function onSignIn() {
 
     if (status === 200) {
       authStore.setTokens(data.accessToken)
-      router.push({ name: 'home' })
+      const redirectPath = route.query.redirect as string
+      if (redirectPath) {
+        router.push(redirectPath)
+      } else {
+        router.push({ name: 'home' })
+      }
     } else if (status === 401) {
       errorMessage.value = 'Username or password is incorrect'
     } else if (status === 429) {

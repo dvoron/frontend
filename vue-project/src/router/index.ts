@@ -61,8 +61,14 @@ router.beforeEach(async (to) => {
 
   if (to.meta.requiresAuth && !auth.isLoggedIn) {
     return {
-      name: 'login'
+      name: 'login',
+      query: { redirect: to.fullPath }
     }
+  }
+
+  // Prevent logged-in users from accessing login/register pages
+  if (auth.isLoggedIn && (to.name === 'login' || to.name === 'register')) {
+    return { name: 'home' }
   }
 
   return true
