@@ -93,18 +93,25 @@ const createPost = async () => {
 }
 
 const addComment = async (post: Post) => {
+  if (post.isSubmittingComment) return
   if (!authStore.accessToken) return
   if (!post.newCommentContent?.trim()) return
   if ((post.newCommentContent || '').length > 1000) return
 
+  post.isSubmittingComment = true
   post.commentError = ''
-  const { data, status } = await apiCreateComment(post.id, null, post.newCommentContent)
+  
+  try {
+    const { data, status } = await apiCreateComment(post.id, null, post.newCommentContent)
 
-  if (status >= 200 && status < 300) {
-    post.comments.push(data)
-    post.newCommentContent = ''
-  } else {
-    post.commentError = 'Failed to add comment. Please try again.'
+    if (status >= 200 && status < 300) {
+      post.comments.push(data)
+      post.newCommentContent = ''
+    } else {
+      post.commentError = 'Failed to add comment. Please try again.'
+    }
+  } finally {
+    post.isSubmittingComment = false
   }
 }
 
@@ -257,9 +264,9 @@ const handleReply = async (
               <button
                 class="btn-primary"
                 @click="addComment(post)"
-                :disabled="(post.newCommentContent || '').length > 1000"
+                :disabled="post.isSubmittingComment || (post.newCommentContent || '').length > 1000"
               >
-                Comment
+                {{ post.isSubmittingComment ? 'Commenting...' : 'Comment' }}
               </button>
             </div>
           </div>

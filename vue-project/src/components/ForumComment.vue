@@ -18,6 +18,7 @@ const showReplyInput = ref(false)
 const replyContent = ref('')
 const replyError = ref('')
 const isLoadingReplies = ref(false)
+const isSubmitting = ref(false)
 
 const setRepliesLoadedRecursive = (comments: Comment[]) => {
   if (!comments) return
@@ -53,11 +54,14 @@ const toggleReplies = async () => {
 }
 
 const submitReply = () => {
+  if (isSubmitting.value) return
   if (!replyContent.value.trim()) return
   if (replyContent.value.length > 1000) return
 
+  isSubmitting.value = true
   replyError.value = ''
   emit('reply', props.comment.id, replyContent.value, (success: boolean) => {
+    isSubmitting.value = false
     if (success) {
       replyContent.value = ''
       showReplyInput.value = false
@@ -107,10 +111,10 @@ const handleChildReply = (
       </div>
       <div v-if="replyError" class="error-message">{{ replyError }}</div>
       <div class="reply-actions">
-        <button class="btn-submit" @click="submitReply" :disabled="replyContent.length > 1000">
-          Submit
+        <button class="btn-submit" @click="submitReply" :disabled="isSubmitting || replyContent.length > 1000">
+          {{ isSubmitting ? 'Submitting...' : 'Submit' }}
         </button>
-        <button class="btn-cancel" @click="showReplyInput = false">Cancel</button>
+        <button class="btn-cancel" @click="showReplyInput = false" :disabled="isSubmitting">Cancel</button>
       </div>
     </div>
 

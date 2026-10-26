@@ -19,6 +19,7 @@ export interface Post {
   showComments?: boolean
   newCommentContent?: string
   commentError?: string
+  isSubmittingComment?: boolean
 }
 
 export interface UserPost {
