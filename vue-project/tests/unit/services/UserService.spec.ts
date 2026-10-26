@@ -1,5 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { login, register, logout, getUserById, updateUser, deleteUser, refresh } from '@/services/UserService'
+import {
+  login,
+  register,
+  logout,
+  getUserById,
+  updateUser,
+  deleteUser,
+  refresh
+} from '@/services/UserService'
 import { request } from '@/utils/axios'
 
 vi.mock('@/utils/axios', () => ({
@@ -31,7 +39,7 @@ describe('UserService', () => {
       expect(ok).toBe(true)
     })
   })
-  
+
   describe('refresh', () => {
     it('should refresh successfully', async () => {
       const mockData = { token: 'new123' }
@@ -55,7 +63,11 @@ describe('UserService', () => {
       const mockData = { id: 1 }
       vi.mocked(request).mockResolvedValueOnce({ data: mockData, status: 201, ok: true })
 
-      const { data, status, ok } = await register({ username: 'user', email: 'e@e.com', password: 'password' })
+      const { data, status, ok } = await register({
+        username: 'user',
+        email: 'e@e.com',
+        password: 'password'
+      })
 
       expect(request).toHaveBeenCalledWith({
         method: 'POST',
@@ -108,12 +120,12 @@ describe('UserService', () => {
       const mockData = { id: 1, name: 'updated' }
       vi.mocked(request).mockResolvedValueOnce({ data: mockData, status: 200, ok: true })
 
-      const { data, status, ok } = await updateUser(1, { name: 'updated' })
+      const { data, status, ok } = await updateUser(1, { username: 'updated', email: 'e@e.com' })
 
       expect(request).toHaveBeenCalledWith({
         method: 'PUT',
         url: '/api/users/1',
-        data: { name: 'updated' }
+        data: { username: 'updated', email: 'e@e.com' }
       })
       expect(data).toEqual(mockData)
       expect(status).toBe(200)

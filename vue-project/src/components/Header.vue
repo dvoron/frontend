@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { logout } from '@/services/UserService'
 import { useRouter } from 'vue-router'
@@ -6,12 +7,30 @@ import { useRouter } from 'vue-router'
 const authStore = useAuthStore()
 const router = useRouter()
 
+const isLoggingOut = ref(false)
+const logoutError = ref('')
+
 async function onLogout() {
-  if (authStore.accessToken) {
-    await logout()
+  if (isLoggingOut.value) return
+
+  isLoggingOut.value = true
+  logoutError.value = ''
+
+  try {
+    if (authStore.accessToken) {
+      const { status } = await logout()
+      if (status < 200 || status >= 300) {
+        logoutError.value = 'Failed to logout. Please try again.'
+        return
+      }
+    }
+    authStore.clearTokens()
+    router.push({ name: 'login' })
+  } catch (e) {
+    logoutError.value = 'An error occurred during logout.'
+  } finally {
+    isLoggingOut.value = false
   }
-  authStore.clearTokens()
-  router.push({ name: 'login' })
 }
 </script>
 
@@ -27,11 +46,13 @@ async function onLogout() {
 
     <div class="flex items-center gap-3">
       <template v-if="authStore.isLoggedIn">
+        <span v-if="logoutError" class="text-red-500 text-sm font-semibold">{{ logoutError }}</span>
         <button
           @click="onLogout"
-          class="bg-red-500 hover:bg-red-600 text-white text-sm font-semibold px-4 py-1 rounded"
+          :disabled="isLoggingOut"
+          class="bg-red-500 hover:bg-red-600 text-white text-sm font-semibold px-4 py-1 rounded disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Logout
+          {{ isLoggingOut ? 'Logging out...' : 'Logout' }}
         </button>
       </template>
       <template v-else>

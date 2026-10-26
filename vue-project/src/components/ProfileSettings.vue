@@ -88,13 +88,23 @@ const handleSave = async () => {
     email: user.value.email
   }
 
-  if (user.value.newPassword) {
+  const isEmailChanged = user.value.email !== props.initialUser.email
+
+  if (isEmailChanged || user.value.newPassword) {
     if (!user.value.oldPassword) {
-      errorMessage.value = 'Please enter your old password to set a new one.'
+      errorMessage.value = 'Please enter your current password to save these changes.'
       isSaving.value = false
       return
     }
     updateData.oldPassword = user.value.oldPassword
+  }
+
+  if (user.value.newPassword) {
+    if (user.value.newPassword.length < 8) {
+      errorMessage.value = 'New password must be at least 8 characters long.'
+      isSaving.value = false
+      return
+    }
     updateData.newPassword = user.value.newPassword
   }
 
@@ -104,6 +114,10 @@ const handleSave = async () => {
     user.value.oldPassword = ''
     user.value.newPassword = ''
     isEditing.value = false
+
+    // Refresh the token to update the username in the auth store
+    await authStore.tryRefresh()
+
     emit('editingChange', false)
     emit('profileUpdated', { username: user.value.username, email: user.value.email })
   } else {
@@ -235,7 +249,10 @@ const handleSave = async () => {
               for="oldPassword"
               class="block text-sm font-medium text-gray-700 sm:mt-px sm:pt-2"
             >
-              Old Password
+              Current Password
+              <span class="block text-xs text-gray-500 font-normal mt-1"
+                >(Required when changing email or password)</span
+              >
             </label>
             <div class="mt-1 sm:mt-0 sm:col-span-2">
               <input
@@ -269,7 +286,6 @@ const handleSave = async () => {
 
           <ProfileDeleteAccountDialog
             ref="deleteDialogRef"
-            :email="props.initialUser.email"
             :isSaving="isSaving"
             :errorMessage="errorMessage"
             @cancelEdit="cancelEdit"

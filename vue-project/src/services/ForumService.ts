@@ -1,9 +1,13 @@
 import { request } from '@/utils/axios'
 
-export async function getAllPosts(page: number = 0, size: number = 10) {
+export async function getAllPosts(cursor?: number, size: number = 10) {
+  const url = cursor
+    ? `/api/forum/posts?cursor=${cursor}&size=${size}`
+    : `/api/forum/posts?size=${size}`
+
   return request({
     method: 'GET',
-    url: `/api/forum/posts?page=${page}&size=${size}`
+    url
   })
 }
 
@@ -45,5 +49,12 @@ export async function getUserComments(userId: number) {
   return request({
     method: 'GET',
     url: `/api/forum/users/${userId}/comments`
+  })
+}
+
+export async function getCommentReplies(commentId: number) {
+  return request({
+    method: 'GET',
+    url: `/api/forum/comments/${commentId}/replies`
   })
 }

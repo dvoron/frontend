@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useAuthStore } from '@/stores/auth'
+import { getCommentReplies } from '@/services/ForumService'
 import type { Comment } from '@/types/forum'
 
 const authStore = useAuthStore()
@@ -16,13 +17,57 @@ const emit = defineEmits<{
 const showReplyInput = ref(false)
 const replyContent = ref('')
 const replyError = ref('')
+const isLoadingReplies = ref(false)
+const isSubmitting = ref(false)
+
+const localReplies = ref<Comment[]>(props.comment.replies || [])
+
+const showReplies = ref(!!(localReplies.value && localReplies.value.length > 0))
+const repliesLoaded = ref(!!(localReplies.value && localReplies.value.length > 0))
+
+import { watch } from 'vue'
+watch(
+  () => props.comment.replies,
+  (newReplies) => {
+    if (newReplies) {
+      localReplies.value = newReplies
+      if (newReplies.length > 0) {
+        repliesLoaded.value = true
+        showReplies.value = true
+      }
+    }
+  },
+  { deep: true }
+)
+
+const toggleReplies = async () => {
+  if (repliesLoaded.value) {
+    showReplies.value = !showReplies.value
+    return
+  }
+
+  isLoadingReplies.value = true
+  try {
+    const { data, status } = await getCommentReplies(props.comment.id)
+    if (status >= 200 && status < 300) {
+      localReplies.value = data
+      repliesLoaded.value = true
+      showReplies.value = true
+    }
+  } finally {
+    isLoadingReplies.value = false
+  }
+}
 
 const submitReply = () => {
+  if (isSubmitting.value) return
   if (!replyContent.value.trim()) return
   if (replyContent.value.length > 1000) return
 
+  isSubmitting.value = true
   replyError.value = ''
   emit('reply', props.comment.id, replyContent.value, (success: boolean) => {
+    isSubmitting.value = false
     if (success) {
       replyContent.value = ''
       showReplyInput.value = false
@@ -51,29 +96,54 @@ const handleChildReply = (
       {{ comment.content }}
     </div>
 
-    <div class="comment-actions" v-if="authStore.isLoggedIn">
-      <button class="action-btn" @click="showReplyInput = !showReplyInput">Reply</button>
+    <div class="comment-actions">
+      <button
+        v-if="authStore.isLoggedIn"
+        class="action-btn"
+        @click="showReplyInput = !showReplyInput"
+      >
+        Reply
+      </button>
+      <button
+        v-if="comment.replyCount && comment.replyCount > 0"
+        class="action-btn"
+        @click="toggleReplies"
+        :disabled="isLoadingReplies"
+      >
+        {{ isLoadingReplies ? 'Loading...' : showReplies ? 'Hide Replies' : 'Load Replies' }}
+      </button>
     </div>
 
     <div v-if="showReplyInput" class="reply-input">
       <div class="input-wrapper">
-        <textarea v-model="replyContent" placeholder="Write a reply..." rows="2"></textarea>
+        <textarea
+          v-model="replyContent"
+          placeholder="Write a reply..."
+          aria-label="Write a reply"
+          rows="2"
+        ></textarea>
         <span class="char-counter" :class="{ error: replyContent.length > 1000 }"
           >{{ replyContent.length }}/1000</span
         >
       </div>
       <div v-if="replyError" class="error-message">{{ replyError }}</div>
       <div class="reply-actions">
-        <button class="btn-submit" @click="submitReply" :disabled="replyContent.length > 1000">
-          Submit
+        <button
+          class="btn-submit"
+          @click="submitReply"
+          :disabled="isSubmitting || replyContent.length > 1000"
+        >
+          {{ isSubmitting ? 'Submitting...' : 'Submit' }}
         </button>
-        <button class="btn-cancel" @click="showReplyInput = false">Cancel</button>
+        <button class="btn-cancel" @click="showReplyInput = false" :disabled="isSubmitting">
+          Cancel
+        </button>
       </div>
     </div>
 
-    <div class="replies" v-if="comment.replies && comment.replies.length > 0">
+    <div class="replies" v-if="showReplies && localReplies && localReplies.length > 0">
       <ForumComment
-        v-for="reply in comment.replies"
+        v-for="reply in localReplies"
         :key="reply.id"
         :comment="reply"
         @reply="handleChildReply"
@@ -108,6 +178,12 @@ const handleChildReply = (
   margin-bottom: 0.5rem;
   color: #e0e0e0;
   line-height: 1.4;
+}
+
+.comment-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
 }
 
 .action-btn {

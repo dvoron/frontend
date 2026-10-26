@@ -1,5 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { getAllPosts, createPost, createComment, getUserPosts, getUserComments } from '@/services/ForumService'
+import {
+  getAllPosts,
+  createPost,
+  createComment,
+  getUserPosts,
+  getUserComments
+} from '@/services/ForumService'
 import { request } from '@/utils/axios'
 
 vi.mock('@/utils/axios', () => ({
@@ -20,7 +26,7 @@ describe('ForumService', () => {
 
       expect(request).toHaveBeenCalledWith({
         method: 'GET',
-        url: '/api/forum/posts?page=0&size=10'
+        url: '/api/forum/posts?size=10'
       })
       expect(data).toEqual(mockData)
       expect(status).toBe(200)

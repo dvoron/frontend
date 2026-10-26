@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
-import { useAuthStore } from "@/stores/auth";
+import { useAuthStore } from '@/stores/auth'
 import { refresh } from '@/services/UserService'
 
 vi.mock('@/services/UserService', () => ({
@@ -84,7 +84,11 @@ describe('Auth Store', () => {
 
   describe('tryRefresh', () => {
     it('returns true and sets token on success', async () => {
-      vi.mocked(refresh).mockResolvedValue({ data: { accessToken: 'new-token' }, status: 200, ok: true } as any)
+      vi.mocked(refresh).mockResolvedValue({
+        data: { accessToken: 'new-token' },
+        status: 200,
+        ok: true
+      } as any)
       const store = useAuthStore()
       const result = await store.tryRefresh()
       expect(result).toBe(true)

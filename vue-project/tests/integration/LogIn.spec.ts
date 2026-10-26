@@ -5,13 +5,18 @@ import { createPinia, setActivePinia } from 'pinia'
 import { useRouter } from 'vue-router'
 import { server } from '../mocks/server'
 import { http, HttpResponse } from 'msw'
-import LogIn from "@/views/LogIn.vue";
-import {useAuthStore} from "@/stores/auth";
+import LogIn from '@/views/LogIn.vue'
+import { useAuthStore } from '@/stores/auth'
 // import { useAuthStore } from '@/stores/auth'
 
-vi.mock('vue-router', () => ({
-  useRouter: vi.fn()
-}))
+vi.mock('vue-router', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('vue-router')>()
+  return {
+    ...actual,
+    useRouter: vi.fn(),
+    useRoute: vi.fn(() => ({ query: {} }))
+  }
+})
 
 vi.mock('@/main', () => ({
   default: {
@@ -46,17 +51,17 @@ describe('LogIn.vue Integration', () => {
     )
 
     const wrapper = mountComponent()
-    
+
     await wrapper.find('input[placeholder="Enter username or email"]').setValue('testuser')
     await wrapper.find('input[placeholder="Enter password"]').setValue('password123')
     await wrapper.find('form').trigger('submit.prevent')
-    
+
     // Wait for promises to resolve
-    await new Promise(resolve => setTimeout(resolve, 50))
-    
+    await new Promise((resolve) => setTimeout(resolve, 50))
+
     const store = useAuthStore()
     expect(store.accessToken).toBe('real-access')
-    
+
     expect(mockPush).toHaveBeenCalledWith({ name: 'home' })
   })
 
@@ -68,13 +73,13 @@ describe('LogIn.vue Integration', () => {
     )
 
     const wrapper = mountComponent()
-    
+
     await wrapper.find('input[placeholder="Enter username or email"]').setValue('wronguser')
     await wrapper.find('input[placeholder="Enter password"]').setValue('wrongpass')
     await wrapper.find('form').trigger('submit.prevent')
-    
-    await new Promise(resolve => setTimeout(resolve, 50))
-    
+
+    await new Promise((resolve) => setTimeout(resolve, 50))
+
     expect(wrapper.text()).toContain('Username or password is incorrect')
   })
 
@@ -86,13 +91,13 @@ describe('LogIn.vue Integration', () => {
     )
 
     const wrapper = mountComponent()
-    
+
     await wrapper.find('input[placeholder="Enter username or email"]').setValue('testuser')
     await wrapper.find('input[placeholder="Enter password"]').setValue('password123')
     await wrapper.find('form').trigger('submit.prevent')
-    
-    await new Promise(resolve => setTimeout(resolve, 50))
-    
+
+    await new Promise((resolve) => setTimeout(resolve, 50))
+
     expect(wrapper.text()).toContain('Something went wrong. Please try again.')
   })
 })

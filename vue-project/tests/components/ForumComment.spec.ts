@@ -1,7 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createTestingPinia } from '@pinia/testing'
-import ForumComment from "@/components/ForumComment.vue";
+import ForumComment from '@/components/ForumComment.vue'
 // import ForumComment from '@/components/ForumComment.vue'
 // import { useAuthStore } from '@/stores/auth'
 
@@ -99,7 +99,7 @@ describe('ForumComment.vue', () => {
     const textarea = wrapper.find('textarea')
     const longText = 'a'.repeat(1001)
     await textarea.setValue(longText)
-    
+
     // Remove disabled attribute to force click for test
     await wrapper.find('.btn-submit').element.removeAttribute('disabled')
     await wrapper.find('.btn-submit').trigger('click')
@@ -119,12 +119,12 @@ describe('ForumComment.vue', () => {
     expect(wrapper.emitted('reply')).toBeTruthy()
     expect(wrapper.emitted('reply')![0][0]).toEqual(1)
     expect(wrapper.emitted('reply')![0][1]).toEqual('My reply')
-    
+
     // Simulate the callback being called with success
     const callback = wrapper.emitted('reply')![0][2] as (success: boolean) => void
     callback(true)
     await wrapper.vm.$nextTick()
-    
+
     expect(wrapper.find('.reply-input').exists()).toBe(false)
   })
 
@@ -142,7 +142,7 @@ describe('ForumComment.vue', () => {
       ]
     }
     const wrapper = mountComponent(commentWithReplies)
-    
+
     const nestedComments = wrapper.findAll('.comment')
     // 1 for the root, 1 for the child
     expect(nestedComments.length).toBe(2)
@@ -163,16 +163,16 @@ describe('ForumComment.vue', () => {
       ]
     }
     const wrapper = mountComponent(commentWithReplies)
-    
+
     // Find the reply button inside the nested comment
     const childComment = wrapper.findAll('.comment')[1]
     await childComment.find('.action-btn').trigger('click')
-    
+
     const textarea = childComment.find('textarea')
     await textarea.setValue('Reply to child')
-    
+
     await childComment.find('.btn-submit').trigger('click')
-    
+
     expect(wrapper.emitted('reply')).toBeTruthy()
     expect(wrapper.emitted('reply')![0][0]).toEqual(2)
     expect(wrapper.emitted('reply')![0][1]).toEqual('Reply to child')

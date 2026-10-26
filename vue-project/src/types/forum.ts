@@ -4,6 +4,7 @@ export interface Comment {
   timestamp: string
   content: string
   replies?: Comment[]
+  replyCount?: number
 }
 
 export interface Post {
@@ -13,9 +14,6 @@ export interface Post {
   title: string
   content: string
   comments: Comment[]
-  showComments?: boolean
-  newCommentContent?: string
-  commentError?: string
 }
 
 export interface UserPost {

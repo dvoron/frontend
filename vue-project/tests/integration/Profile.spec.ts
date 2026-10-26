@@ -5,14 +5,19 @@ import { createPinia, setActivePinia } from 'pinia'
 import { useRouter } from 'vue-router'
 import { server } from '../mocks/server'
 import { http, HttpResponse } from 'msw'
-import {useAuthStore} from "@/stores/auth";
-import Profile from "@/views/Profile.vue";
+import { useAuthStore } from '@/stores/auth'
+import Profile from '@/views/Profile.vue'
 import ProfileActivityList from '@/components/ProfileActivityList.vue'
 // import { useAuthStore } from '@/stores/auth'
 
-vi.mock('vue-router', () => ({
-  useRouter: vi.fn()
-}))
+vi.mock('vue-router', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('vue-router')>()
+  return {
+    ...actual,
+    useRouter: vi.fn(),
+    useRoute: vi.fn(() => ({ query: {} }))
+  }
+})
 
 vi.mock('@/main', () => ({
   default: {
@@ -27,11 +32,15 @@ describe('Profile.vue Integration', () => {
     vi.clearAllMocks()
     vi.mocked(useRouter).mockReturnValue({ push: mockPush } as any)
     setActivePinia(createPinia())
-    
+
     // Setup logged in user
     const store = useAuthStore()
     store.setTokens('mock-token')
-    store.accessToken = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' })) + '.' + btoa(JSON.stringify({ sub: 1, username: 'testuser' })) + '.signature'
+    store.accessToken =
+      btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' })) +
+      '.' +
+      btoa(JSON.stringify({ sub: 1, username: 'testuser' })) +
+      '.signature'
   })
 
   const mountComponent = () => {
@@ -62,14 +71,14 @@ describe('Profile.vue Integration', () => {
     )
 
     const wrapper = mountComponent()
-    
+
     // Wait for all fetches
-    await new Promise(resolve => setTimeout(resolve, 100))
-    
+    await new Promise((resolve) => setTimeout(resolve, 100))
+
     // Profile settings check
     expect(wrapper.text()).toContain('testuser')
     expect(wrapper.text()).toContain('test@example.com')
-    
+
     // Activity check
     expect(wrapper.text()).toContain('My First Post')
     expect(wrapper.text()).toContain('My First Comment')
@@ -85,8 +94,8 @@ describe('Profile.vue Integration', () => {
     )
 
     const wrapper = mountComponent()
-    await new Promise(resolve => setTimeout(resolve, 50))
-    
+    await new Promise((resolve) => setTimeout(resolve, 50))
+
     expect(wrapper.text()).toContain('fallbackname')
     expect(wrapper.text()).toContain('fallback@example.com')
   })
@@ -101,15 +110,15 @@ describe('Profile.vue Integration', () => {
     )
 
     const wrapper = mountComponent()
-    await new Promise(resolve => setTimeout(resolve, 50))
-    
+    await new Promise((resolve) => setTimeout(resolve, 50))
+
     expect(wrapper.text()).toContain('Failed to load profile data.')
   })
 
   it('ProfileActivityList returns early when no user or token', async () => {
     const store = useAuthStore()
     store.accessToken = null
-    
+
     let fetchCalled = false
     server.use(
       http.get('/api/forum/users/:id/posts', () => {
@@ -122,16 +131,16 @@ describe('Profile.vue Integration', () => {
       })
     )
 
-    const wrapper = mount(ProfileActivityList, {
+    mount(ProfileActivityList, {
       global: {
         stubs: {
           RouterLink: true
         }
       }
     })
-    
-    await new Promise(resolve => setTimeout(resolve, 50))
-    
+
+    await new Promise((resolve) => setTimeout(resolve, 50))
+
     expect(fetchCalled).toBe(false)
   })
 
@@ -142,7 +151,13 @@ describe('Profile.vue Integration', () => {
       }),
       http.get('/api/forum/users/1/posts', () => {
         return HttpResponse.json([
-          { id: 1, title: 'My Filter Post', content: 'Post Content', timestamp: '1h ago', comments: [] }
+          {
+            id: 1,
+            title: 'My Filter Post',
+            content: 'Post Content',
+            timestamp: '1h ago',
+            comments: []
+          }
         ])
       }),
       http.get('/api/forum/users/1/comments', () => {
@@ -153,15 +168,15 @@ describe('Profile.vue Integration', () => {
     )
 
     const wrapper = mountComponent()
-    
+
     // Wait for all fetches
-    await new Promise(resolve => setTimeout(resolve, 100))
-    
+    await new Promise((resolve) => setTimeout(resolve, 100))
+
     // Find filter buttons
     const buttons = wrapper.findAll('button')
-    const allBtn = buttons.find(b => b.text().includes('All Activity'))
-    const postsBtn = buttons.find(b => b.text().includes('Posts (1)'))
-    const commentsBtn = buttons.find(b => b.text().includes('Comments (1)'))
+    const allBtn = buttons.find((b) => b.text().includes('All Activity'))
+    const postsBtn = buttons.find((b) => b.text().includes('Posts (1)'))
+    const commentsBtn = buttons.find((b) => b.text().includes('Comments (1)'))
 
     expect(allBtn).toBeDefined()
     expect(postsBtn).toBeDefined()
@@ -201,21 +216,22 @@ describe('Profile.vue Integration', () => {
     )
 
     const wrapper = mountComponent()
-    await new Promise(resolve => setTimeout(resolve, 50))
-    
+    await new Promise((resolve) => setTimeout(resolve, 50))
+
     // Click Edit Profile
     const buttons = wrapper.findAll('button')
-    const editBtn = buttons.find(b => b.text() === 'Edit Profile')
+    const editBtn = buttons.find((b) => b.text() === 'Edit Profile')
     await editBtn!.trigger('click')
-    
+
     // Change username and email
     await wrapper.find('input#username').setValue('updateduser')
     await wrapper.find('input#email').setValue('updated@example.com')
-    
+    await wrapper.find('input#oldPassword').setValue('password123')
+
     // Save
     await wrapper.find('form').trigger('submit.prevent')
-    await new Promise(resolve => setTimeout(resolve, 50))
-    
+    await new Promise((resolve) => setTimeout(resolve, 50))
+
     // Verify DOM updates
     expect(wrapper.text()).toContain('updateduser')
     expect(wrapper.text()).toContain('updated@example.com')
@@ -235,45 +251,45 @@ describe('Profile.vue Integration', () => {
     )
 
     const wrapper = mountComponent()
-    await new Promise(resolve => setTimeout(resolve, 50))
-    
+    await new Promise((resolve) => setTimeout(resolve, 50))
+
     // Click Edit Profile
     const buttons = wrapper.findAll('button')
-    const editBtn = buttons.find(b => b.text() === 'Edit Profile')
+    const editBtn = buttons.find((b) => b.text() === 'Edit Profile')
     await editBtn!.trigger('click')
-    
+
     // Click Delete Account
     const deleteBtns = wrapper.findAll('button')
-    const deleteBtn = deleteBtns.find(b => b.text() === 'Delete Account')
+    const deleteBtn = deleteBtns.find((b) => b.text() === 'Delete Account')
     await deleteBtn!.trigger('click')
-    
+
     // Mock login endpoint for password verification
     server.use(
       http.post('/api/auth/login', () => {
         return HttpResponse.json({ accessToken: 'mock', refreshToken: 'mock' })
       })
     )
-    
+
     // Enter password and verify
     await wrapper.find('input#deletePassword').setValue('password123')
     const verifyBtns = wrapper.findAll('button')
-    const verifyBtn = verifyBtns.find(b => b.text() === 'Continue')
+    const verifyBtn = verifyBtns.find((b) => b.text() === 'Continue')
     await verifyBtn!.trigger('click')
-    
-    await new Promise(resolve => setTimeout(resolve, 50))
-    
+
+    await new Promise((resolve) => setTimeout(resolve, 50))
+
     // Confirm delete in dialog
     const confirmBtns = wrapper.findAll('button')
-    const confirmBtn = confirmBtns.find(b => b.text() === 'Yes, Delete')
+    const confirmBtn = confirmBtns.find((b) => b.text() === 'Yes, Delete')
     await confirmBtn!.trigger('click')
-    
-    await new Promise(resolve => setTimeout(resolve, 50))
-    
+
+    await new Promise((resolve) => setTimeout(resolve, 50))
+
     // Verify store is cleared
     const store = useAuthStore()
     expect(store.accessToken).toBeNull()
     expect(store.isLoggedIn).toBe(false)
-    
+
     // Verify router push
     expect(mockPush).toHaveBeenCalledWith({ name: 'login' })
   })

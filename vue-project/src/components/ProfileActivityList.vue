@@ -9,6 +9,8 @@ const authStore = useAuthStore()
 const userPosts = ref<UserPost[]>([])
 const userComments = ref<UserComment[]>([])
 const activityFilter = ref('both') // 'posts', 'comments', 'both'
+const loadError = ref('')
+const isLoading = ref(false)
 
 interface ActivityItem {
   type: 'post' | 'comment'
@@ -25,17 +27,36 @@ const loadUserActivity = async () => {
 
   if (!userId || !authStore.accessToken) return
 
-  const [postsResponse, commentsResponse] = await Promise.all([
-    getUserPosts(userId),
-    getUserComments(userId)
-  ])
+  isLoading.value = true
+  loadError.value = ''
 
-  if (postsResponse.status === 200) {
-    userPosts.value = postsResponse.data
-  }
+  try {
+    const [postsResponse, commentsResponse] = await Promise.all([
+      getUserPosts(userId),
+      getUserComments(userId)
+    ])
 
-  if (commentsResponse.status === 200) {
-    userComments.value = commentsResponse.data
+    let hasError = false
+
+    if (postsResponse.status === 200) {
+      userPosts.value = postsResponse.data
+    } else {
+      hasError = true
+    }
+
+    if (commentsResponse.status === 200) {
+      userComments.value = commentsResponse.data
+    } else {
+      hasError = true
+    }
+
+    if (hasError) {
+      loadError.value = 'Failed to load some activity. Please try again.'
+    }
+  } catch (err) {
+    loadError.value = 'An error occurred while loading activity.'
+  } finally {
+    isLoading.value = false
   }
 }
 
@@ -124,7 +145,20 @@ const displayedActivity = computed(() => {
     </div>
 
     <div class="px-4 py-5 sm:p-6">
-      <div v-if="displayedActivity.length === 0" class="text-center py-8 text-gray-500">
+      <div v-if="isLoading" class="text-center py-8 text-gray-500">Loading activity...</div>
+      <div
+        v-else-if="loadError"
+        class="text-center py-8 text-red-500 flex flex-col items-center gap-4"
+      >
+        {{ loadError }}
+        <button
+          @click="loadUserActivity"
+          class="bg-teal-100 text-teal-800 border-teal-200 px-3 py-1.5 border rounded-md text-sm font-medium transition-colors hover:bg-teal-200"
+        >
+          Retry
+        </button>
+      </div>
+      <div v-else-if="displayedActivity.length === 0" class="text-center py-8 text-gray-500">
         No activity found.
       </div>
       <ul v-else class="space-y-8">

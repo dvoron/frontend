@@ -2,16 +2,21 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createTestingPinia } from '@pinia/testing'
 import { useRouter } from 'vue-router'
-import LogIn from "@/views/LogIn.vue";
-import {login} from "@/services/UserService";
+import LogIn from '@/views/LogIn.vue'
+import { login } from '@/services/UserService'
 
 vi.mock('@/services/UserService', () => ({
   login: vi.fn()
 }))
 
-vi.mock('vue-router', () => ({
-  useRouter: vi.fn()
-}))
+vi.mock('vue-router', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('vue-router')>()
+  return {
+    ...actual,
+    useRouter: vi.fn(),
+    useRoute: vi.fn(() => ({ query: {} }))
+  }
+})
 
 describe('LogIn.vue', () => {
   const mockPush = vi.fn()
@@ -41,13 +46,13 @@ describe('LogIn.vue', () => {
 
   it('updates form data on input', async () => {
     const wrapper = mountComponent()
-    
+
     const loginInput = wrapper.find('input[placeholder="Enter username or email"]')
     await loginInput.setValue('testuser')
-    
+
     const passwordInput = wrapper.find('input[placeholder="Enter password"]')
     await passwordInput.setValue('password123')
-    
+
     expect((loginInput.element as HTMLInputElement).value).toBe('testuser')
     expect((passwordInput.element as HTMLInputElement).value).toBe('password123')
   })
@@ -55,51 +60,55 @@ describe('LogIn.vue', () => {
   it('toggles password visibility', async () => {
     const wrapper = mountComponent()
     const passwordInput = wrapper.find('input[placeholder="Enter password"]')
-    
+
     expect(passwordInput.attributes('type')).toBe('password')
-    
+
     const checkbox = wrapper.find('input[type="checkbox"]')
     await checkbox.setValue(true)
-    
+
     expect(passwordInput.attributes('type')).toBe('text')
-    
+
     await checkbox.setValue(false)
-    
+
     expect(passwordInput.attributes('type')).toBe('password')
   })
 
   it('handles successful login', async () => {
-    vi.mocked(login).mockResolvedValueOnce({ data: { accessToken: 'token', refreshToken: 'refresh' }, status: 200, ok: true } as any)
-    
+    vi.mocked(login).mockResolvedValueOnce({
+      data: { accessToken: 'token', refreshToken: 'refresh' },
+      status: 200,
+      ok: true
+    } as any)
+
     const wrapper = mountComponent()
     await wrapper.find('input[placeholder="Enter username or email"]').setValue('testuser')
     await wrapper.find('input[placeholder="Enter password"]').setValue('password123')
-    
+
     await wrapper.find('form').trigger('submit.prevent')
-    
+
     expect(login).toHaveBeenCalledWith({ login: 'testuser', password: 'password123' })
     // Wait for promises to resolve
-    await new Promise(resolve => setTimeout(resolve, 0))
+    await new Promise((resolve) => setTimeout(resolve, 0))
     expect(mockPush).toHaveBeenCalledWith({ name: 'home' })
   })
 
   it('handles login error (401)', async () => {
     vi.mocked(login).mockResolvedValueOnce({ data: {}, status: 401, ok: false } as any)
-    
+
     const wrapper = mountComponent()
     await wrapper.find('form').trigger('submit.prevent')
-    
-    await new Promise(resolve => setTimeout(resolve, 0))
+
+    await new Promise((resolve) => setTimeout(resolve, 0))
     expect(wrapper.text()).toContain('Username or password is incorrect')
   })
 
   it('handles login error (500)', async () => {
     vi.mocked(login).mockResolvedValueOnce({ data: {}, status: 500, ok: false } as any)
-    
+
     const wrapper = mountComponent()
     await wrapper.find('form').trigger('submit.prevent')
-    
-    await new Promise(resolve => setTimeout(resolve, 0))
+
+    await new Promise((resolve) => setTimeout(resolve, 0))
     expect(wrapper.text()).toContain('Something went wrong. Please try again.')
   })
 })
