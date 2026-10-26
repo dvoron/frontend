@@ -8,7 +8,6 @@ const apiClient = axios.create({
   timeout: 5000 // 5 seconds timeout to prevent indefinite hanging
 })
 
-
 const sanitizeLogData = (data: any): any => {
   if (!data) return data
   if (typeof data !== 'object') return data
@@ -46,7 +45,13 @@ export const sanitizeAxiosError = (error: any): any => {
       url: error.config.url,
       method: error.config.method,
       headers: sanitizeLogData(error.config.headers),
-      data: error.config.data ? sanitizeLogData(typeof error.config.data === 'string' ? JSON.parse(error.config.data) : error.config.data) : undefined
+      data: error.config.data
+        ? sanitizeLogData(
+            typeof error.config.data === 'string'
+              ? JSON.parse(error.config.data)
+              : error.config.data
+          )
+        : undefined
     }
   }
 
@@ -82,7 +87,6 @@ apiClient.interceptors.request.use(
     return Promise.reject(error)
   }
 )
-
 
 const shouldSkipRefresh = (config: import('axios').InternalAxiosRequestConfig) => {
   const url = config.url || ''

@@ -26,15 +26,19 @@ const showReplies = ref(!!(localReplies.value && localReplies.value.length > 0))
 const repliesLoaded = ref(!!(localReplies.value && localReplies.value.length > 0))
 
 import { watch } from 'vue'
-watch(() => props.comment.replies, (newReplies) => {
-  if (newReplies) {
-    localReplies.value = newReplies
-    if (newReplies.length > 0) {
-      repliesLoaded.value = true
-      showReplies.value = true
+watch(
+  () => props.comment.replies,
+  (newReplies) => {
+    if (newReplies) {
+      localReplies.value = newReplies
+      if (newReplies.length > 0) {
+        repliesLoaded.value = true
+        showReplies.value = true
+      }
     }
-  }
-}, { deep: true })
+  },
+  { deep: true }
+)
 
 const toggleReplies = async () => {
   if (repliesLoaded.value) {
@@ -93,30 +97,47 @@ const handleChildReply = (
     </div>
 
     <div class="comment-actions">
-      <button v-if="authStore.isLoggedIn" class="action-btn" @click="showReplyInput = !showReplyInput">Reply</button>
-      <button 
-        v-if="comment.replyCount && comment.replyCount > 0" 
-        class="action-btn" 
+      <button
+        v-if="authStore.isLoggedIn"
+        class="action-btn"
+        @click="showReplyInput = !showReplyInput"
+      >
+        Reply
+      </button>
+      <button
+        v-if="comment.replyCount && comment.replyCount > 0"
+        class="action-btn"
         @click="toggleReplies"
         :disabled="isLoadingReplies"
       >
-        {{ isLoadingReplies ? 'Loading...' : (showReplies ? 'Hide Replies' : 'Load Replies') }}
+        {{ isLoadingReplies ? 'Loading...' : showReplies ? 'Hide Replies' : 'Load Replies' }}
       </button>
     </div>
 
     <div v-if="showReplyInput" class="reply-input">
       <div class="input-wrapper">
-        <textarea v-model="replyContent" placeholder="Write a reply..." aria-label="Write a reply" rows="2"></textarea>
+        <textarea
+          v-model="replyContent"
+          placeholder="Write a reply..."
+          aria-label="Write a reply"
+          rows="2"
+        ></textarea>
         <span class="char-counter" :class="{ error: replyContent.length > 1000 }"
           >{{ replyContent.length }}/1000</span
         >
       </div>
       <div v-if="replyError" class="error-message">{{ replyError }}</div>
       <div class="reply-actions">
-        <button class="btn-submit" @click="submitReply" :disabled="isSubmitting || replyContent.length > 1000">
+        <button
+          class="btn-submit"
+          @click="submitReply"
+          :disabled="isSubmitting || replyContent.length > 1000"
+        >
           {{ isSubmitting ? 'Submitting...' : 'Submit' }}
         </button>
-        <button class="btn-cancel" @click="showReplyInput = false" :disabled="isSubmitting">Cancel</button>
+        <button class="btn-cancel" @click="showReplyInput = false" :disabled="isSubmitting">
+          Cancel
+        </button>
       </div>
     </div>
 

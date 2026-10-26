@@ -145,12 +145,18 @@ const displayedActivity = computed(() => {
     </div>
 
     <div class="px-4 py-5 sm:p-6">
-      <div v-if="isLoading" class="text-center py-8 text-gray-500">
-        Loading activity...
-      </div>
-      <div v-else-if="loadError" class="text-center py-8 text-red-500 flex flex-col items-center gap-4">
+      <div v-if="isLoading" class="text-center py-8 text-gray-500">Loading activity...</div>
+      <div
+        v-else-if="loadError"
+        class="text-center py-8 text-red-500 flex flex-col items-center gap-4"
+      >
         {{ loadError }}
-        <button @click="loadUserActivity" class="bg-teal-100 text-teal-800 border-teal-200 px-3 py-1.5 border rounded-md text-sm font-medium transition-colors hover:bg-teal-200">Retry</button>
+        <button
+          @click="loadUserActivity"
+          class="bg-teal-100 text-teal-800 border-teal-200 px-3 py-1.5 border rounded-md text-sm font-medium transition-colors hover:bg-teal-200"
+        >
+          Retry
+        </button>
       </div>
       <div v-else-if="displayedActivity.length === 0" class="text-center py-8 text-gray-500">
         No activity found.

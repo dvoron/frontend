@@ -1,5 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { getAllPosts, createPost, createComment, getUserPosts, getUserComments } from '@/services/ForumService'
+import {
+  getAllPosts,
+  createPost,
+  createComment,
+  getUserPosts,
+  getUserComments
+} from '@/services/ForumService'
 import { request } from '@/utils/axios'
 
 vi.mock('@/utils/axios', () => ({

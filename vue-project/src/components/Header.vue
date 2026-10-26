@@ -12,10 +12,10 @@ const logoutError = ref('')
 
 async function onLogout() {
   if (isLoggingOut.value) return
-  
+
   isLoggingOut.value = true
   logoutError.value = ''
-  
+
   try {
     if (authStore.accessToken) {
       const { status } = await logout()
