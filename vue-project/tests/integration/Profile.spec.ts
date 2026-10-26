@@ -127,7 +127,7 @@ describe('Profile.vue Integration', () => {
       })
     )
 
-    const wrapper = mount(ProfileActivityList, {
+    mount(ProfileActivityList, {
       global: {
         stubs: {
           RouterLink: true

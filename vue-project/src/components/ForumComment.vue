@@ -20,14 +20,19 @@ const replyError = ref('')
 const isLoadingReplies = ref(false)
 const isSubmitting = ref(false)
 
-const showReplies = ref(!!(props.comment.replies && props.comment.replies.length > 0))
-const repliesLoaded = ref(!!(props.comment.replies && props.comment.replies.length > 0))
+const localReplies = ref<Comment[]>(props.comment.replies || [])
+
+const showReplies = ref(!!(localReplies.value && localReplies.value.length > 0))
+const repliesLoaded = ref(!!(localReplies.value && localReplies.value.length > 0))
 
 import { watch } from 'vue'
 watch(() => props.comment.replies, (newReplies) => {
-  if (newReplies && newReplies.length > 0) {
-    repliesLoaded.value = true
-    showReplies.value = true
+  if (newReplies) {
+    localReplies.value = newReplies
+    if (newReplies.length > 0) {
+      repliesLoaded.value = true
+      showReplies.value = true
+    }
   }
 }, { deep: true })
 
@@ -41,7 +46,7 @@ const toggleReplies = async () => {
   try {
     const { data, status } = await getCommentReplies(props.comment.id)
     if (status >= 200 && status < 300) {
-      props.comment.replies = data
+      localReplies.value = data
       repliesLoaded.value = true
       showReplies.value = true
     }
@@ -115,9 +120,9 @@ const handleChildReply = (
       </div>
     </div>
 
-    <div class="replies" v-if="showReplies && comment.replies && comment.replies.length > 0">
+    <div class="replies" v-if="showReplies && localReplies && localReplies.length > 0">
       <ForumComment
-        v-for="reply in comment.replies"
+        v-for="reply in localReplies"
         :key="reply.id"
         :comment="reply"
         @reply="handleChildReply"

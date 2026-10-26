@@ -4,7 +4,7 @@ import { useAuthStore } from '@/stores/auth'
 import { deleteUser } from '@/services/UserService'
 import { useRouter } from 'vue-router'
 
-const props = defineProps({
+defineProps({
   isSaving: {
     type: Boolean,
     default: false
@@ -15,7 +15,7 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['cancelEdit'])
+defineEmits(['cancelEdit'])
 
 const authStore = useAuthStore()
 const router = useRouter()

@@ -4,7 +4,7 @@ import { createTestingPinia } from '@pinia/testing'
 // import { useAuthStore } from '@/stores/auth'
 import ProfileDeleteAccountDialog from "@/components/ProfileDeleteAccountDialog.vue";
 import {useAuthStore} from "@/stores/auth";
-import { login, deleteUser } from '@/services/UserService'
+import { deleteUser } from '@/services/UserService'
 import { useRouter } from 'vue-router'
 
 vi.mock('@/services/UserService', () => ({
