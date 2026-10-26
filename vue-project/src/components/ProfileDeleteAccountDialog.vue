@@ -5,10 +5,6 @@ import { deleteUser } from '@/services/UserService'
 import { useRouter } from 'vue-router'
 
 const props = defineProps({
-  email: {
-    type: String,
-    required: true
-  },
   isSaving: {
     type: Boolean,
     default: false
@@ -43,7 +39,7 @@ const cancelDelete = () => {
 
 defineExpose({ cancelDelete })
 
-const verifyDeletePassword = async () => {
+const promptDeleteConfirmation = async () => {
   if (!deletePassword.value) {
     deleteError.value = 'Password is required to delete your account.'
     return
@@ -131,13 +127,13 @@ const confirmDeleteAccount = async () => {
               type="password"
               id="deletePassword"
               v-model="deletePassword"
-              @keyup.enter="verifyDeletePassword"
+              @keyup.enter="promptDeleteConfirmation"
               class="block w-full sm:max-w-xs shadow-sm focus:ring-red-500 focus:border-red-500 sm:text-sm border-gray-300 rounded-md p-2 border"
               placeholder="Password"
             />
             <button
               type="button"
-              @click="verifyDeletePassword"
+              @click="promptDeleteConfirmation"
               :disabled="isDeleting"
               class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50"
             >

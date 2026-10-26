@@ -286,7 +286,6 @@ const handleSave = async () => {
 
           <ProfileDeleteAccountDialog
             ref="deleteDialogRef"
-            :email="props.initialUser.email"
             :isSaving="isSaving"
             :errorMessage="errorMessage"
             @cancelEdit="cancelEdit"

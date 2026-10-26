@@ -19,32 +19,55 @@ const getCurrentUsername = () => {
 // State for posts
 const posts = ref<Post[]>([])
 const hasMore = ref(true)
+const loadPostsError = ref('')
+const isLoadingPosts = ref(false)
 
-const setRepliesLoadedRecursive = (comments: Comment[]) => {
-  if (!comments) return
-  for (const comment of comments) {
-    if (comment.replies && comment.replies.length > 0) {
-      comment.repliesLoaded = true
-      comment.showReplies = true
-      setRepliesLoadedRecursive(comment.replies)
+interface PostUiState {
+  showComments: boolean
+  newCommentContent: string
+  commentError: string
+  isSubmittingComment: boolean
+}
+
+const postUiStates = ref<Record<number, PostUiState>>({})
+
+const getPostUiState = (postId: number): PostUiState => {
+  if (!postUiStates.value[postId]) {
+    postUiStates.value[postId] = {
+      showComments: false,
+      newCommentContent: '',
+      commentError: '',
+      isSubmittingComment: false
     }
   }
+  return postUiStates.value[postId]
 }
 
 const loadPosts = async (loadMore = false) => {
-  const cursor = loadMore && posts.value.length > 0 ? posts.value[posts.value.length - 1].id : undefined
-  const { data, status } = await getAllPosts(cursor)
-  if (status >= 200 && status < 300) {
-    data.forEach((post: Post) => {
-      post.comments = post.comments || []
-      setRepliesLoadedRecursive(post.comments)
-    })
-    if (loadMore) {
-      posts.value.push(...data)
+  if (isLoadingPosts.value) return
+  isLoadingPosts.value = true
+  if (!loadMore) loadPostsError.value = ''
+  
+  try {
+    const cursor = loadMore && posts.value.length > 0 ? posts.value[posts.value.length - 1].id : undefined
+    const { data, status } = await getAllPosts(cursor)
+    if (status >= 200 && status < 300) {
+      data.forEach((post: Post) => {
+        post.comments = post.comments || []
+      })
+      if (loadMore) {
+        posts.value.push(...data)
+      } else {
+        posts.value = data
+      }
+      hasMore.value = data.length === 10
     } else {
-      posts.value = data
+      loadPostsError.value = 'Failed to load posts. Please try again.'
     }
-    hasMore.value = data.length === 10
+  } catch (err) {
+    loadPostsError.value = 'An error occurred while loading posts.'
+  } finally {
+    isLoadingPosts.value = false
   }
 }
 
@@ -93,25 +116,26 @@ const createPost = async () => {
 }
 
 const addComment = async (post: Post) => {
-  if (post.isSubmittingComment) return
+  const uiState = getPostUiState(post.id)
+  if (uiState.isSubmittingComment) return
   if (!authStore.accessToken) return
-  if (!post.newCommentContent?.trim()) return
-  if ((post.newCommentContent || '').length > 1000) return
+  if (!uiState.newCommentContent?.trim()) return
+  if ((uiState.newCommentContent || '').length > 1000) return
 
-  post.isSubmittingComment = true
-  post.commentError = ''
+  uiState.isSubmittingComment = true
+  uiState.commentError = ''
   
   try {
-    const { data, status } = await apiCreateComment(post.id, null, post.newCommentContent)
+    const { data, status } = await apiCreateComment(post.id, null, uiState.newCommentContent)
 
     if (status >= 200 && status < 300) {
       post.comments.push(data)
-      post.newCommentContent = ''
+      uiState.newCommentContent = ''
     } else {
-      post.commentError = 'Failed to add comment. Please try again.'
+      uiState.commentError = 'Failed to add comment. Please try again.'
     }
   } finally {
-    post.isSubmittingComment = false
+    uiState.isSubmittingComment = false
   }
 }
 
@@ -126,8 +150,6 @@ const addReplyToComment = (
       if (!comment.replies) comment.replies = []
       comment.replies.push(newComment)
       comment.replyCount = (comment.replyCount || 0) + 1
-      comment.repliesLoaded = true
-      comment.showReplies = true
       return true
     }
 
@@ -179,7 +201,7 @@ const handleReply = async (
     <div v-if="showNewPostForm" class="new-post-form card">
       <h2>Create a new post</h2>
       <div class="input-wrapper">
-        <input v-model="newPost.title" placeholder="Title" class="form-input" />
+        <input v-model="newPost.title" placeholder="Title" aria-label="Post Title" class="form-input" />
         <span class="char-counter" :class="{ error: newPost.title.length > 255 }"
           >{{ newPost.title.length }}/255</span
         >
@@ -188,6 +210,7 @@ const handleReply = async (
         <textarea
           v-model="newPost.content"
           placeholder="Text (optional)"
+          aria-label="Post Content"
           class="form-input"
           rows="4"
         ></textarea>
@@ -219,7 +242,7 @@ const handleReply = async (
         <p class="content">{{ post.content }}</p>
 
         <div class="post-actions">
-          <button class="action-btn" @click="post.showComments = !post.showComments">
+          <button class="action-btn" @click="getPostUiState(post.id).showComments = !getPostUiState(post.id).showComments">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="16"
@@ -240,7 +263,7 @@ const handleReply = async (
         </div>
 
         <!-- Comments Section -->
-        <div v-if="post.showComments" class="comments-section">
+        <div v-if="getPostUiState(post.id).showComments" class="comments-section">
           <!-- Add Comment to Post -->
           <div v-if="authStore.isLoggedIn" class="add-comment">
             <p>
@@ -248,25 +271,26 @@ const handleReply = async (
             </p>
             <div class="input-wrapper">
               <textarea
-                v-model="post.newCommentContent"
+                v-model="getPostUiState(post.id).newCommentContent"
                 placeholder="What are your thoughts?"
+                aria-label="Write a comment"
                 rows="3"
                 class="form-input"
               ></textarea>
               <span
                 class="char-counter"
-                :class="{ error: (post.newCommentContent || '').length > 1000 }"
-                >{{ (post.newCommentContent || '').length }}/1000</span
+                :class="{ error: (getPostUiState(post.id).newCommentContent || '').length > 1000 }"
+                >{{ (getPostUiState(post.id).newCommentContent || '').length }}/1000</span
               >
             </div>
-            <div v-if="post.commentError" class="error-message">{{ post.commentError }}</div>
+            <div v-if="getPostUiState(post.id).commentError" class="error-message">{{ getPostUiState(post.id).commentError }}</div>
             <div class="comment-btn-container">
               <button
                 class="btn-primary"
                 @click="addComment(post)"
-                :disabled="post.isSubmittingComment || (post.newCommentContent || '').length > 1000"
+                :disabled="getPostUiState(post.id).isSubmittingComment || (getPostUiState(post.id).newCommentContent || '').length > 1000"
               >
-                {{ post.isSubmittingComment ? 'Commenting...' : 'Comment' }}
+                {{ getPostUiState(post.id).isSubmittingComment ? 'Commenting...' : 'Comment' }}
               </button>
             </div>
           </div>
@@ -293,8 +317,15 @@ const handleReply = async (
       </div>
     </div>
 
-    <div v-if="hasMore" class="load-more-container">
-      <button class="btn-primary" @click="loadMorePosts">Load More</button>
+    <div v-if="loadPostsError" class="error-message" style="text-align: center; margin-top: 20px;">
+      {{ loadPostsError }}
+      <button class="btn-primary" @click="loadPosts(false)" style="margin-left: 10px;">Retry</button>
+    </div>
+
+    <div v-if="hasMore && !loadPostsError" class="load-more-container">
+      <button class="btn-primary" @click="loadMorePosts" :disabled="isLoadingPosts">
+        {{ isLoadingPosts ? 'Loading...' : 'Load More' }}
+      </button>
     </div>
   </div>
 </template>

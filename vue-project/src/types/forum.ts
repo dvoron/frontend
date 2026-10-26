@@ -5,8 +5,6 @@ export interface Comment {
   content: string
   replies?: Comment[]
   replyCount?: number
-  showReplies?: boolean
-  repliesLoaded?: boolean
 }
 
 export interface Post {
@@ -16,10 +14,6 @@ export interface Post {
   title: string
   content: string
   comments: Comment[]
-  showComments?: boolean
-  newCommentContent?: string
-  commentError?: string
-  isSubmittingComment?: boolean
 }
 
 export interface UserPost {

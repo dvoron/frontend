@@ -20,20 +20,20 @@ const replyError = ref('')
 const isLoadingReplies = ref(false)
 const isSubmitting = ref(false)
 
-const setRepliesLoadedRecursive = (comments: Comment[]) => {
-  if (!comments) return
-  for (const comment of comments) {
-    if (comment.replies && comment.replies.length > 0) {
-      comment.repliesLoaded = true
-      comment.showReplies = true
-      setRepliesLoadedRecursive(comment.replies)
-    }
+const showReplies = ref(!!(props.comment.replies && props.comment.replies.length > 0))
+const repliesLoaded = ref(!!(props.comment.replies && props.comment.replies.length > 0))
+
+import { watch } from 'vue'
+watch(() => props.comment.replies, (newReplies) => {
+  if (newReplies && newReplies.length > 0) {
+    repliesLoaded.value = true
+    showReplies.value = true
   }
-}
+}, { deep: true })
 
 const toggleReplies = async () => {
-  if (props.comment.repliesLoaded) {
-    props.comment.showReplies = !props.comment.showReplies
+  if (repliesLoaded.value) {
+    showReplies.value = !showReplies.value
     return
   }
 
@@ -42,11 +42,8 @@ const toggleReplies = async () => {
     const { data, status } = await getCommentReplies(props.comment.id)
     if (status >= 200 && status < 300) {
       props.comment.replies = data
-      props.comment.repliesLoaded = true
-      props.comment.showReplies = true
-      if (props.comment.replies) {
-        setRepliesLoadedRecursive(props.comment.replies)
-      }
+      repliesLoaded.value = true
+      showReplies.value = true
     }
   } finally {
     isLoadingReplies.value = false
@@ -98,13 +95,13 @@ const handleChildReply = (
         @click="toggleReplies"
         :disabled="isLoadingReplies"
       >
-        {{ isLoadingReplies ? 'Loading...' : (comment.showReplies ? 'Hide Replies' : 'Load Replies') }}
+        {{ isLoadingReplies ? 'Loading...' : (showReplies ? 'Hide Replies' : 'Load Replies') }}
       </button>
     </div>
 
     <div v-if="showReplyInput" class="reply-input">
       <div class="input-wrapper">
-        <textarea v-model="replyContent" placeholder="Write a reply..." rows="2"></textarea>
+        <textarea v-model="replyContent" placeholder="Write a reply..." aria-label="Write a reply" rows="2"></textarea>
         <span class="char-counter" :class="{ error: replyContent.length > 1000 }"
           >{{ replyContent.length }}/1000</span
         >
@@ -118,7 +115,7 @@ const handleChildReply = (
       </div>
     </div>
 
-    <div class="replies" v-if="comment.showReplies && comment.replies && comment.replies.length > 0">
+    <div class="replies" v-if="showReplies && comment.replies && comment.replies.length > 0">
       <ForumComment
         v-for="reply in comment.replies"
         :key="reply.id"

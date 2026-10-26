@@ -3,3 +3,4 @@ node_modules
 vue-project/dist
 vue-project/coverage
 *.tsbuildinfo
+*.iml

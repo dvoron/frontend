@@ -24,7 +24,6 @@ describe('ProfileDeleteAccountDialog.vue', () => {
   const mountComponent = (props: Record<string, any> = {}) => {
     return mount(ProfileDeleteAccountDialog, {
       props: {
-        email: 'test@example.com',
         isSaving: false,
         errorMessage: '',
         ...props
