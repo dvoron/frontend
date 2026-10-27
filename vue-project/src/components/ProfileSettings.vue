@@ -76,6 +76,12 @@ const handleSave = async () => {
     return
   }
 
+  if (user.value.username.trim().length === 0) {
+    errorMessage.value = "Username must not be purely whitespace"
+    isSaving.value = false
+    return
+  }
+
   const userId = authStore.userId
   if (!userId || !authStore.accessToken) {
     errorMessage.value = 'User is not authenticated.'
@@ -220,7 +226,10 @@ const handleSave = async () => {
         <form v-else @submit.prevent="handleSave" class="sm:divide-y sm:divide-gray-200">
           <div class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
             <label for="username" class="block text-sm font-medium text-gray-700 sm:mt-px sm:pt-2"
-              >Username</label
+              >Username
+              <span class="block text-xs text-gray-500 font-normal mt-1"
+                >(Must not be purely whitespace)</span
+              ></label
             >
             <div class="mt-1 sm:mt-0 sm:col-span-2">
               <input
