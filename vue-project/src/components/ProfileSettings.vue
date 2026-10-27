@@ -115,8 +115,12 @@ const handleSave = async () => {
     user.value.newPassword = ''
     isEditing.value = false
 
-    // Refresh the token to update the username in the auth store
-    await authStore.tryRefresh()
+    if (data?.accessToken) {
+      authStore.setTokens(data.accessToken)
+    } else if (user.value.username !== props.initialUser.username) {
+      // Refresh the token to update the username in the auth store
+      await authStore.tryRefresh()
+    }
 
     emit('editingChange', false)
     emit('profileUpdated', { username: user.value.username, email: user.value.email })
