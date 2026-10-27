@@ -24,6 +24,10 @@ const localReplies = ref<Comment[]>(props.comment.replies || [])
 
 const showReplies = ref(!!(localReplies.value && localReplies.value.length > 0))
 const repliesLoaded = ref(!!(localReplies.value && localReplies.value.length > 0))
+const repliesPage = ref(0)
+const hasMoreReplies = ref(
+  props.comment.replyCount ? (localReplies.value.length === 0) : false
+)
 
 import { watch } from 'vue'
 watch(
@@ -41,18 +45,27 @@ watch(
 )
 
 const toggleReplies = async () => {
-  if (repliesLoaded.value) {
-    showReplies.value = !showReplies.value
-    return
+  showReplies.value = !showReplies.value
+  if (showReplies.value && !repliesLoaded.value) {
+    await loadMoreReplies()
   }
+}
+
+const loadMoreReplies = async () => {
+  if (isLoadingReplies.value || !hasMoreReplies.value) return
 
   isLoadingReplies.value = true
   try {
-    const { data, status } = await getCommentReplies(props.comment.id)
+    const { data, status } = await getCommentReplies(props.comment.id, repliesPage.value, 10)
     if (status >= 200 && status < 300) {
-      localReplies.value = data
+      if (repliesPage.value === 0) {
+        localReplies.value = data
+      } else {
+        localReplies.value.push(...data)
+      }
       repliesLoaded.value = true
-      showReplies.value = true
+      repliesPage.value++
+      hasMoreReplies.value = data.length === 10
     }
   } finally {
     isLoadingReplies.value = false
@@ -148,6 +161,12 @@ const handleChildReply = (
         :comment="reply"
         @reply="handleChildReply"
       />
+      
+      <div v-if="hasMoreReplies" style="margin-top: 8px;">
+        <button class="action-btn" @click="loadMoreReplies" :disabled="isLoadingReplies">
+          {{ isLoadingReplies ? 'Loading...' : 'Load More Replies' }}
+        </button>
+      </div>
     </div>
   </div>
 </template>

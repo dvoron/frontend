@@ -52,9 +52,16 @@ export async function getUserComments(userId: number) {
   })
 }
 
-export async function getCommentReplies(commentId: number) {
+export async function getPostComments(postId: number, page: number = 0, size: number = 10) {
   return request({
     method: 'GET',
-    url: `/api/forum/comments/${commentId}/replies`
+    url: `/api/forum/posts/${postId}/comments?page=${page}&size=${size}`
+  })
+}
+
+export async function getCommentReplies(commentId: number, page: number = 0, size: number = 10) {
+  return request({
+    method: 'GET',
+    url: `/api/forum/comments/${commentId}/replies?page=${page}&size=${size}`
   })
 }

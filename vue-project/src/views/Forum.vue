@@ -5,7 +5,8 @@ import ForumComment from '@/components/ForumComment.vue'
 import {
   getAllPosts,
   createPost as apiCreatePost,
-  createComment as apiCreateComment
+  createComment as apiCreateComment,
+  getPostComments
 } from '@/services/ForumService'
 import type { Comment, Post } from '@/types/forum'
 
@@ -27,6 +28,10 @@ interface PostUiState {
   newCommentContent: string
   commentError: string
   isSubmittingComment: boolean
+  commentsLoaded: boolean
+  isLoadingComments: boolean
+  commentsPage: number
+  hasMoreComments: boolean
 }
 
 const postUiStates = ref<Record<number, PostUiState>>({})
@@ -37,10 +42,45 @@ const getPostUiState = (postId: number): PostUiState => {
       showComments: false,
       newCommentContent: '',
       commentError: '',
-      isSubmittingComment: false
+      isSubmittingComment: false,
+      commentsLoaded: false,
+      isLoadingComments: false,
+      commentsPage: 0,
+      hasMoreComments: true
     }
   }
   return postUiStates.value[postId]
+}
+
+const toggleComments = async (post: Post) => {
+  const uiState = getPostUiState(post.id)
+  uiState.showComments = !uiState.showComments
+  
+  if (uiState.showComments && !uiState.commentsLoaded) {
+    loadPostComments(post)
+  }
+}
+
+const loadPostComments = async (post: Post) => {
+  const uiState = getPostUiState(post.id)
+  if (uiState.isLoadingComments || !uiState.hasMoreComments) return
+  
+  uiState.isLoadingComments = true
+  try {
+    const { data, status } = await getPostComments(post.id, uiState.commentsPage, 10)
+    if (status >= 200 && status < 300) {
+      if (uiState.commentsPage === 0) {
+        post.comments = data
+      } else {
+        post.comments.push(...data)
+      }
+      uiState.commentsLoaded = true
+      uiState.commentsPage++
+      uiState.hasMoreComments = data.length === 10
+    }
+  } finally {
+    uiState.isLoadingComments = false
+  }
 }
 
 const loadPosts = async (loadMore = false) => {
@@ -130,7 +170,8 @@ const addComment = async (post: Post) => {
     const { data, status } = await apiCreateComment(post.id, null, uiState.newCommentContent)
 
     if (status >= 200 && status < 300) {
-      post.comments.push(data)
+      post.comments.unshift(data)
+      post.commentCount = (post.commentCount || 0) + 1
       uiState.newCommentContent = ''
     } else {
       uiState.commentError = 'Failed to add comment. Please try again.'
@@ -250,7 +291,7 @@ const handleReply = async (
         <div class="post-actions">
           <button
             class="action-btn"
-            @click="getPostUiState(post.id).showComments = !getPostUiState(post.id).showComments"
+            @click="toggleComments(post)"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -267,7 +308,7 @@ const handleReply = async (
                 d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"
               ></path>
             </svg>
-            {{ post.comments.length }} Comments
+            {{ post.commentCount }} Comments
           </button>
         </div>
 
@@ -323,8 +364,16 @@ const handleReply = async (
               "
             />
 
-            <div v-if="post.comments.length === 0" class="no-comments">
+            <div v-if="post.comments.length === 0 && getPostUiState(post.id).commentsLoaded" class="no-comments">
               No comments yet. Be the first to share your thoughts!
+            </div>
+            
+            <div v-if="getPostUiState(post.id).isLoadingComments" style="text-align: center; color: #888; padding: 10px;">
+              Loading comments...
+            </div>
+            
+            <div v-if="getPostUiState(post.id).hasMoreComments && getPostUiState(post.id).commentsLoaded" style="text-align: center; margin-top: 10px;">
+              <button class="action-btn" style="margin: 0 auto;" @click="loadPostComments(post)">Load More Comments</button>
             </div>
           </div>
         </div>

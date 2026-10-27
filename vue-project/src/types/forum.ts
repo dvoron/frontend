@@ -14,6 +14,7 @@ export interface Post {
   title: string
   content: string
   comments: Comment[]
+  commentCount: number
 }
 
 export interface UserPost {
