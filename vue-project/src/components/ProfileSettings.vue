@@ -111,6 +111,11 @@ const handleSave = async () => {
       isSaving.value = false
       return
     }
+    if (user.value.newPassword.length > 72) {
+      errorMessage.value = 'New password must not exceed 72 characters.'
+      isSaving.value = false
+      return
+    }
     updateData.newPassword = user.value.newPassword
   }
 

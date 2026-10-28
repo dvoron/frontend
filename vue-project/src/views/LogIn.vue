@@ -34,6 +34,8 @@ async function onSignIn() {
       errorMessage.value = 'Username or password is incorrect'
     } else if (status === 429) {
       errorMessage.value = data?.message || 'Account locked due to too many failed login attempts'
+    } else if (status === 400) {
+      errorMessage.value = data?.message || 'Invalid request. Please check your input.'
     } else {
       errorMessage.value = 'Something went wrong. Please try again.'
     }

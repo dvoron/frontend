@@ -47,6 +47,9 @@ async function submit() {
   } else if (registerForm.password.length < 8) {
     passwordError.value = 'Password must be at least 8 characters long'
     hasError = true
+  } else if (registerForm.password.length > 72) {
+    passwordError.value = 'Password must not exceed 72 characters'
+    hasError = true
   }
 
   if (hasError) {
@@ -68,6 +71,8 @@ async function submit() {
       } else {
         generalError.value = data.message || 'Something went wrong. Please try again.'
       }
+    } else if (status === 400) {
+      generalError.value = data?.message || 'Invalid request. Please check your input.'
     } else {
       generalError.value = 'Something went wrong. Please try again.'
     }
