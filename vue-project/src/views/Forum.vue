@@ -134,11 +134,16 @@ const isCreatingPost = ref(false)
 const createPost = async () => {
   if (isCreatingPost.value) return
   if (!authStore.accessToken) return
-  if (!newPost.value.title.trim()) return
+  
+  createPostError.value = ''
+  
+  if (!newPost.value.title.trim()) {
+    createPostError.value = 'Title is required to create a post.'
+    return
+  }
   if (newPost.value.title.length > 255 || (newPost.value.content || '').length > 2000) return
 
   isCreatingPost.value = true
-  createPostError.value = ''
 
   try {
     const { data, status } = await apiCreatePost(newPost.value.title, newPost.value.content)
