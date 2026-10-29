@@ -41,17 +41,20 @@ export const sanitizeAxiosError = (error: any): any => {
   }
 
   if (error.config) {
+    let parsedData = error.config.data
+    if (typeof error.config.data === 'string') {
+      try {
+        parsedData = JSON.parse(error.config.data)
+      } catch (e) {
+        // Ignore parse errors, keep as string
+      }
+    }
+
     sanitizedError.config = {
       url: error.config.url,
       method: error.config.method,
       headers: sanitizeLogData(error.config.headers),
-      data: error.config.data
-        ? sanitizeLogData(
-            typeof error.config.data === 'string'
-              ? JSON.parse(error.config.data)
-              : error.config.data
-          )
-        : undefined
+      data: error.config.data ? sanitizeLogData(parsedData) : undefined
     }
   }
 
