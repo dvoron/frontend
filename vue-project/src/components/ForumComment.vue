@@ -1,17 +1,16 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useAuthStore } from '@/stores/auth'
+import { useForumStore } from '@/stores/forum'
 import { getCommentReplies } from '@/services/ForumService'
 import type { Comment } from '@/types/forum'
 
 const authStore = useAuthStore()
+const forumStore = useForumStore()
 
 const props = defineProps<{
   comment: Comment
-}>()
-
-const emit = defineEmits<{
-  (e: 'reply', parentId: number, content: string, onComplete: (success: boolean) => void): void
+  postId: number
 }>()
 
 const showReplyInput = ref(false)
@@ -71,31 +70,24 @@ const loadMoreReplies = async () => {
   }
 }
 
-const submitReply = () => {
+const submitReply = async () => {
   if (isSubmitting.value) return
   if (!replyContent.value.trim()) return
   if (replyContent.value.length > 1000) return
 
   isSubmitting.value = true
   replyError.value = ''
-  emit('reply', props.comment.id, replyContent.value, (success: boolean) => {
-    isSubmitting.value = false
-    if (success) {
-      replyContent.value = ''
-      showReplyInput.value = false
-      showReplies.value = true
-    } else {
-      replyError.value = 'Failed to post reply. Please try again.'
-    }
-  })
-}
 
-const handleChildReply = (
-  parentId: number,
-  content: string,
-  onComplete: (success: boolean) => void
-) => {
-  emit('reply', parentId, content, onComplete)
+  const result = await forumStore.addReply(props.postId, props.comment.id, replyContent.value)
+  isSubmitting.value = false
+
+  if (result.success) {
+    replyContent.value = ''
+    showReplyInput.value = false
+    showReplies.value = true
+  } else {
+    replyError.value = result.error || 'Failed to post reply. Please try again.'
+  }
 }
 </script>
 
@@ -163,7 +155,7 @@ const handleChildReply = (
         v-for="reply in comment.replies"
         :key="reply.id"
         :comment="reply"
-        @reply="handleChildReply"
+        :postId="postId"
       />
       
       <div v-if="hasMoreReplies" style="margin-top: 8px;">

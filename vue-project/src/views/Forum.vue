@@ -1,27 +1,21 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
+import { useForumStore } from '@/stores/forum'
 import ForumComment from '@/components/ForumComment.vue'
-import {
-  getAllPosts,
-  createPost as apiCreatePost,
-  createComment as apiCreateComment,
-  getPostComments
-} from '@/services/ForumService'
+import { getPostComments } from '@/services/ForumService'
 import type { Comment, Post } from '@/types/forum'
 
 const authStore = useAuthStore()
+const forumStore = useForumStore()
 
 // Helper to get current username
 const getCurrentUsername = () => {
   return authStore.username || 'Guest'
 }
 
-// State for posts
-const posts = ref<Post[]>([])
-const hasMore = ref(true)
-const loadPostsError = ref('')
-const isLoadingPosts = ref(false)
+// Store state is used directly in the template via forumStore
+
 
 interface PostUiState {
   showComments: boolean
@@ -83,44 +77,8 @@ const loadPostComments = async (post: Post) => {
   }
 }
 
-const loadPosts = async (loadMore = false) => {
-  if (isLoadingPosts.value) return
-  isLoadingPosts.value = true
-  if (!loadMore) loadPostsError.value = ''
-
-  try {
-    const cursor =
-      loadMore && posts.value.length > 0 ? posts.value[posts.value.length - 1].id : undefined
-    const size = 10
-    const { data, status } = await getAllPosts(cursor, size)
-    if (status >= 200 && status < 300) {
-      data.forEach((post: Post) => {
-        post.comments = post.comments || []
-      })
-      if (loadMore) {
-        posts.value.push(...data)
-      } else {
-        posts.value = data
-      }
-      hasMore.value = data.length === size
-    } else {
-      loadPostsError.value = 'Failed to load posts. Please try again.'
-    }
-  } catch (err) {
-    loadPostsError.value = 'An error occurred while loading posts.'
-  } finally {
-    isLoadingPosts.value = false
-  }
-}
-
-const loadMorePosts = () => {
-  if (hasMore.value) {
-    loadPosts(true)
-  }
-}
-
 onMounted(() => {
-  loadPosts()
+  forumStore.loadPosts()
 })
 
 const showNewPostForm = ref(false)
@@ -146,16 +104,13 @@ const createPost = async () => {
   isCreatingPost.value = true
 
   try {
-    const { data, status } = await apiCreatePost(newPost.value.title, newPost.value.content)
-
-    if (status >= 200 && status < 300) {
-      data.comments = data.comments || []
-      posts.value.unshift(data)
+    const result = await forumStore.createPost(newPost.value.title, newPost.value.content)
+    if (result.success) {
       newPost.value.title = ''
       newPost.value.content = ''
       showNewPostForm.value = false
     } else {
-      createPostError.value = 'Failed to create post. Please try again.'
+      createPostError.value = result.error || 'Failed to create post. Please try again.'
     }
   } finally {
     isCreatingPost.value = false
@@ -173,61 +128,14 @@ const addComment = async (post: Post) => {
   uiState.commentError = ''
 
   try {
-    const { data, status } = await apiCreateComment(post.id, null, uiState.newCommentContent)
-
-    if (status >= 200 && status < 300) {
-      post.comments.unshift(data)
-      post.commentCount = (post.commentCount || 0) + 1
+    const result = await forumStore.addComment(post.id, uiState.newCommentContent)
+    if (result.success) {
       uiState.newCommentContent = ''
     } else {
-      uiState.commentError = 'Failed to add comment. Please try again.'
+      uiState.commentError = result.error || 'Failed to add comment. Please try again.'
     }
   } finally {
     uiState.isSubmittingComment = false
-  }
-}
-
-// Function to recursively find a comment and add a reply
-const addReplyToComment = (
-  commentsList: Comment[],
-  parentId: number,
-  newComment: Comment
-): boolean => {
-  for (let comment of commentsList) {
-    if (comment.id === parentId) {
-      if (!comment.replies) comment.replies = []
-      comment.replies.push(newComment)
-      comment.replyCount = (comment.replyCount || 0) + 1
-      return true
-    }
-
-    if (comment.replies && comment.replies.length > 0) {
-      const found = addReplyToComment(comment.replies, parentId, newComment)
-      if (found) return true
-    }
-  }
-  return false
-}
-
-const handleReply = async (
-  postId: number,
-  parentCommentId: number,
-  content: string,
-  onComplete?: (success: boolean) => void
-) => {
-  if (!authStore.accessToken) {
-    if (onComplete) onComplete(false)
-    return
-  }
-  const { data, status } = await apiCreateComment(postId, parentCommentId, content)
-  if (status >= 200 && status < 300) {
-    const post = posts.value.find((p) => p.id === postId)
-    if (post) {
-      addReplyToComment(post.comments, parentCommentId, data)
-    }
-    if (onComplete) onComplete(true)
-  } else {
-    if (onComplete) onComplete(false)
   }
 }
 </script>
@@ -285,7 +193,7 @@ const handleReply = async (
 
     <!-- Post List -->
     <div class="post-list">
-      <div v-for="post in posts" :key="post.id" class="post card">
+      <div v-for="post in forumStore.posts" :key="post.id" class="post card">
         <div class="post-header">
           <span class="author">Posted by u/{{ post.author }}</span>
           <span class="timestamp">{{ post.timestamp }}</span>
@@ -364,10 +272,7 @@ const handleReply = async (
               v-for="comment in post.comments"
               :key="comment.id"
               :comment="comment"
-              @reply="
-                (parentId, content, onComplete) =>
-                  handleReply(post.id, parentId, content, onComplete)
-              "
+              :postId="post.id"
             />
 
             <div v-if="post.comments.length === 0 && getPostUiState(post.id).commentsLoaded" class="no-comments">
@@ -386,14 +291,14 @@ const handleReply = async (
       </div>
     </div>
 
-    <div v-if="loadPostsError" class="error-message" style="text-align: center; margin-top: 20px">
-      {{ loadPostsError }}
-      <button class="btn-primary" @click="loadPosts(false)" style="margin-left: 10px">Retry</button>
+    <div v-if="forumStore.loadPostsError" class="error-message" style="text-align: center; margin-top: 20px">
+      {{ forumStore.loadPostsError }}
+      <button class="btn-primary" @click="forumStore.loadPosts(false)" style="margin-left: 10px">Retry</button>
     </div>
 
-    <div v-if="hasMore && !loadPostsError" class="load-more-container">
-      <button class="btn-primary" @click="loadMorePosts" :disabled="isLoadingPosts">
-        {{ isLoadingPosts ? 'Loading...' : 'Load More' }}
+    <div v-if="forumStore.hasMore && !forumStore.loadPostsError" class="load-more-container">
+      <button class="btn-primary" @click="forumStore.loadMorePosts" :disabled="forumStore.isLoadingPosts">
+        {{ forumStore.isLoadingPosts ? 'Loading...' : 'Load More' }}
       </button>
     </div>
   </div>

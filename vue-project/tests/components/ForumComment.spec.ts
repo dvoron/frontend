@@ -2,8 +2,7 @@ import { describe, it, expect, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createTestingPinia } from '@pinia/testing'
 import ForumComment from '@/components/ForumComment.vue'
-// import ForumComment from '@/components/ForumComment.vue'
-// import { useAuthStore } from '@/stores/auth'
+import { useForumStore } from '@/stores/forum'
 
 describe('ForumComment.vue', () => {
   const defaultComment = {
@@ -16,13 +15,14 @@ describe('ForumComment.vue', () => {
 
   const mountComponent = (comment: any = defaultComment, isLoggedIn = true) => {
     return mount(ForumComment, {
-      props: { comment },
+      props: { comment, postId: 99 },
       global: {
         plugins: [
           createTestingPinia({
             createSpy: vi.fn,
             initialState: {
-              auth: { accessToken: isLoggedIn ? 'token' : null }
+              auth: { accessToken: isLoggedIn ? 'token' : null },
+              forum: { posts: [] }
             }
           })
         ]
@@ -81,19 +81,21 @@ describe('ForumComment.vue', () => {
     expect(wrapper.find('.btn-submit').attributes('disabled')).toBeDefined()
   })
 
-  it('does not emit reply if content is empty or whitespace', async () => {
+  it('does not call addReply if content is empty or whitespace', async () => {
     const wrapper = mountComponent()
+    const forumStore = useForumStore()
     await wrapper.find('.action-btn').trigger('click')
 
     const textarea = wrapper.find('textarea')
     await textarea.setValue('   ')
     await wrapper.find('.btn-submit').trigger('click')
 
-    expect(wrapper.emitted('reply')).toBeFalsy()
+    expect(forumStore.addReply).not.toHaveBeenCalled()
   })
 
-  it('does not emit reply if content exceeds 1000 characters', async () => {
+  it('does not call addReply if content exceeds 1000 characters', async () => {
     const wrapper = mountComponent()
+    const forumStore = useForumStore()
     await wrapper.find('.action-btn').trigger('click')
 
     const textarea = wrapper.find('textarea')
@@ -104,11 +106,15 @@ describe('ForumComment.vue', () => {
     await wrapper.find('.btn-submit').element.removeAttribute('disabled')
     await wrapper.find('.btn-submit').trigger('click')
 
-    expect(wrapper.emitted('reply')).toBeFalsy()
+    expect(forumStore.addReply).not.toHaveBeenCalled()
   })
 
-  it('emits reply event with correct payload on submit', async () => {
+  it('calls addReply with correct payload on submit', async () => {
     const wrapper = mountComponent()
+    const forumStore = useForumStore()
+    // Mock the store action to return success
+    vi.mocked(forumStore.addReply).mockResolvedValue({ success: true })
+
     await wrapper.find('.action-btn').trigger('click')
 
     const textarea = wrapper.find('textarea')
@@ -116,14 +122,10 @@ describe('ForumComment.vue', () => {
 
     await wrapper.find('.btn-submit').trigger('click')
 
-    expect(wrapper.emitted('reply')).toBeTruthy()
-    expect(wrapper.emitted('reply')![0][0]).toEqual(1)
-    expect(wrapper.emitted('reply')![0][1]).toEqual('My reply')
+    expect(forumStore.addReply).toHaveBeenCalledWith(99, 1, 'My reply')
 
-    // Simulate the callback being called with success
-    const callback = wrapper.emitted('reply')![0][2] as (success: boolean) => void
-    callback(true)
     await wrapper.vm.$nextTick()
+    await wrapper.vm.$nextTick() // wait for promises to resolve
 
     expect(wrapper.find('.reply-input').exists()).toBe(false)
   })
@@ -149,7 +151,7 @@ describe('ForumComment.vue', () => {
     expect(wrapper.text()).toContain('Nested reply')
   })
 
-  it('emits reply event when a child comment emits reply', async () => {
+  it('calls addReply when a child comment submits a reply', async () => {
     const commentWithReplies = {
       ...defaultComment,
       replies: [
@@ -163,6 +165,8 @@ describe('ForumComment.vue', () => {
       ]
     }
     const wrapper = mountComponent(commentWithReplies)
+    const forumStore = useForumStore()
+    vi.mocked(forumStore.addReply).mockResolvedValue({ success: true })
 
     // Find the reply button inside the nested comment
     const childComment = wrapper.findAll('.comment')[1]
@@ -173,8 +177,6 @@ describe('ForumComment.vue', () => {
 
     await childComment.find('.btn-submit').trigger('click')
 
-    expect(wrapper.emitted('reply')).toBeTruthy()
-    expect(wrapper.emitted('reply')![0][0]).toEqual(2)
-    expect(wrapper.emitted('reply')![0][1]).toEqual('Reply to child')
+    expect(forumStore.addReply).toHaveBeenCalledWith(99, 2, 'Reply to child')
   })
 })
