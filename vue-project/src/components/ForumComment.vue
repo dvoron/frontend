@@ -77,6 +77,7 @@ const submitReply = () => {
     if (success) {
       replyContent.value = ''
       showReplyInput.value = false
+      showReplies.value = true
     } else {
       replyError.value = 'Failed to post reply. Please try again.'
     }
