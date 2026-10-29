@@ -24,8 +24,10 @@ async function onSignIn() {
 
     if (status === 200) {
       authStore.setTokens(data.accessToken)
-      const redirectPath = route.query.redirect as string
-      if (redirectPath) {
+      const redirectQuery = route.query.redirect
+      const redirectPath = Array.isArray(redirectQuery) ? redirectQuery[0] : redirectQuery
+      
+      if (typeof redirectPath === 'string' && redirectPath.startsWith('/') && !redirectPath.startsWith('//')) {
         router.push(redirectPath)
       } else {
         router.push({ name: 'home' })
