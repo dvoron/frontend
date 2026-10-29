@@ -3,6 +3,7 @@ import { jwtDecode } from 'jwt-decode'
 import { refresh } from '@/services/UserService'
 
 let refreshPromise: Promise<boolean> | null = null
+let currentSessionId = 0
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
@@ -39,15 +40,22 @@ export const useAuthStore = defineStore('auth', {
     },
     clearTokens() {
       this.accessToken = null
+      refreshPromise = null
+      currentSessionId++
     },
     async tryRefresh() {
       if (refreshPromise) {
         return refreshPromise
       }
 
+      const sessionId = currentSessionId
+
       refreshPromise = (async () => {
         try {
           const { data, status } = await refresh()
+          if (sessionId !== currentSessionId) {
+            return false
+          }
           if (status === 200 && data.accessToken) {
             this.setTokens(data.accessToken)
             return true
@@ -55,7 +63,9 @@ export const useAuthStore = defineStore('auth', {
           this.clearTokens()
           return false
         } finally {
-          refreshPromise = null
+          if (sessionId === currentSessionId) {
+            refreshPromise = null
+          }
         }
       })()
 

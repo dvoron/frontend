@@ -323,27 +323,27 @@ describe('Forum.vue Integration', () => {
     const wrapper = mountComponent()
     await new Promise((resolve) => setTimeout(resolve, 50))
 
-    const forumStore = useForumStore()
-    const post = forumStore.posts[0]
+    // Open comments
+    await wrapper.find('.action-btn').trigger('click')
+    await new Promise((resolve) => setTimeout(resolve, 50))
 
-    // Initialize UI state
-    await wrapper.find('.action-btn').trigger('click') // expand comments to init UI state
-    const vm = wrapper.vm as any
+    const textarea = wrapper.find('textarea[placeholder="What are your thoughts?"]')
+    const commentButton = wrapper.find('.comment-btn-container button')
 
     // 1. Empty comment
-    vm.getPostUiState(post.id).newCommentContent = '   '
-    await vm.addComment(post)
+    await textarea.setValue('   ')
+    await commentButton.trigger('click')
     expect(createCommentMock).not.toHaveBeenCalled()
 
     // 2. Comment too long
-    vm.getPostUiState(post.id).newCommentContent = 'a'.repeat(1001)
-    await vm.addComment(post)
+    await textarea.setValue('a'.repeat(1001))
+    await commentButton.trigger('click')
     expect(createCommentMock).not.toHaveBeenCalled()
 
     // 3. Missing token
-    vm.getPostUiState(post.id).newCommentContent = 'Valid comment'
+    await textarea.setValue('Valid comment')
     store.clearTokens()
-    await vm.addComment(post)
+    await commentButton.trigger('click')
     expect(createCommentMock).not.toHaveBeenCalled()
   })
 

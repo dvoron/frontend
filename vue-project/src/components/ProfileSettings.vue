@@ -128,7 +128,7 @@ const handleSave = async () => {
 
     if (data?.accessToken) {
       authStore.setTokens(data.accessToken)
-    } else if (user.value.username !== props.initialUser.username) {
+    } else if (updateData.username !== props.initialUser.username) {
       // Refresh the token to update the username in the auth store
       const refreshed = await authStore.tryRefresh()
       if (!refreshed) {
@@ -137,7 +137,7 @@ const handleSave = async () => {
     }
 
     emit('editingChange', false)
-    emit('profileUpdated', { username: user.value.username, email: user.value.email })
+    emit('profileUpdated', { username: updateData.username, email: updateData.email })
   } else {
     errorMessage.value = data?.message || 'Failed to update profile.'
   }
@@ -245,7 +245,8 @@ const handleSave = async () => {
                 id="username"
                 v-model="user.username"
                 required
-                class="max-w-lg block w-full shadow-sm focus:ring-teal-500 focus:border-teal-500 sm:max-w-xs sm:text-sm border-gray-300 rounded-md p-2 border"
+                :disabled="isSaving"
+                class="max-w-lg block w-full shadow-sm focus:ring-teal-500 focus:border-teal-500 sm:max-w-xs sm:text-sm border-gray-300 rounded-md p-2 border disabled:opacity-50"
               />
             </div>
           </div>
@@ -260,7 +261,8 @@ const handleSave = async () => {
                 id="email"
                 v-model="user.email"
                 required
-                class="max-w-lg block w-full shadow-sm focus:ring-teal-500 focus:border-teal-500 sm:max-w-xs sm:text-sm border-gray-300 rounded-md p-2 border"
+                :disabled="isSaving"
+                class="max-w-lg block w-full shadow-sm focus:ring-teal-500 focus:border-teal-500 sm:max-w-xs sm:text-sm border-gray-300 rounded-md p-2 border disabled:opacity-50"
               />
             </div>
           </div>
@@ -280,7 +282,8 @@ const handleSave = async () => {
                 type="password"
                 id="oldPassword"
                 v-model="user.oldPassword"
-                class="max-w-lg block w-full shadow-sm focus:ring-teal-500 focus:border-teal-500 sm:max-w-xs sm:text-sm border-gray-300 rounded-md p-2 border"
+                :disabled="isSaving"
+                class="max-w-lg block w-full shadow-sm focus:ring-teal-500 focus:border-teal-500 sm:max-w-xs sm:text-sm border-gray-300 rounded-md p-2 border disabled:opacity-50"
               />
             </div>
           </div>
@@ -300,7 +303,8 @@ const handleSave = async () => {
                 type="password"
                 id="newPassword"
                 v-model="user.newPassword"
-                class="max-w-lg block w-full shadow-sm focus:ring-teal-500 focus:border-teal-500 sm:max-w-xs sm:text-sm border-gray-300 rounded-md p-2 border"
+                :disabled="isSaving"
+                class="max-w-lg block w-full shadow-sm focus:ring-teal-500 focus:border-teal-500 sm:max-w-xs sm:text-sm border-gray-300 rounded-md p-2 border disabled:opacity-50"
               />
             </div>
           </div>
