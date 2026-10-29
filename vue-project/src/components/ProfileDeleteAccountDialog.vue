@@ -68,7 +68,7 @@ const confirmDeleteAccount = async () => {
     router.push({ name: 'login' })
   } else {
     deleteError.value = data?.message || 'Failed to delete account.'
-    if (status === 400 && data?.message === 'Invalid password') {
+    if (status === 400 && data?.code === 'INVALID_PASSWORD') {
       deleteState.value = 'password'
     }
   }
