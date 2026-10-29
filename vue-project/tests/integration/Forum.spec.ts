@@ -8,7 +8,7 @@ import { http, HttpResponse } from 'msw'
 import Forum from '@/views/Forum.vue'
 import ForumComment from '@/components/ForumComment.vue'
 import { useAuthStore } from '@/stores/auth'
-// import { useAuthStore } from '@/stores/auth'
+import { useForumStore } from '@/stores/forum'
 
 describe('Forum.vue Integration', () => {
   beforeEach(() => {
@@ -323,26 +323,31 @@ describe('Forum.vue Integration', () => {
     const wrapper = mountComponent()
     await new Promise((resolve) => setTimeout(resolve, 50))
 
-    const post = (wrapper.vm as any).posts[0]
+    const forumStore = useForumStore()
+    const post = forumStore.posts[0]
+
+    // Initialize UI state
+    await wrapper.find('.action-btn').trigger('click') // expand comments to init UI state
+    const vm = wrapper.vm as any
 
     // 1. Empty comment
-    post.newCommentContent = '   '
-    await (wrapper.vm as any).addComment(post)
+    vm.getPostUiState(post.id).newCommentContent = '   '
+    await vm.addComment(post)
     expect(createCommentMock).not.toHaveBeenCalled()
 
     // 2. Comment too long
-    post.newCommentContent = 'a'.repeat(1001)
-    await (wrapper.vm as any).addComment(post)
+    vm.getPostUiState(post.id).newCommentContent = 'a'.repeat(1001)
+    await vm.addComment(post)
     expect(createCommentMock).not.toHaveBeenCalled()
 
     // 3. Missing token
-    post.newCommentContent = 'Valid comment'
+    vm.getPostUiState(post.id).newCommentContent = 'Valid comment'
     store.clearTokens()
-    await (wrapper.vm as any).addComment(post)
+    await vm.addComment(post)
     expect(createCommentMock).not.toHaveBeenCalled()
   })
 
-  it('handleReply and addReplyToComment (lines 83-108)', async () => {
+  it('store addReply and recursive addReplyToComment', async () => {
     server.use(
       http.get('/api/forum/posts', () => {
         return HttpResponse.json([
@@ -402,13 +407,76 @@ describe('Forum.vue Integration', () => {
     const wrapper = mountComponent()
     await new Promise((resolve) => setTimeout(resolve, 50))
 
-    const vm = wrapper.vm as any
+    const forumStore = useForumStore()
 
-    // 1. Test handleReply early return if no token
-    store.clearTokens()
-    await vm.handleReply(1, 10, 'Reply content')
+    // 1. Test addReply for a top-level comment (id: 10)
+    await forumStore.addReply(1, 10, 'Reply to top level')
+    expect(forumStore.posts[0].comments[0].replies!.length).toBe(1)
+    expect(forumStore.posts[0].comments[0].replies![0].content).toBe('Reply to top level')
 
-    // Restore token
+    // 2. Test addReply for a nested comment (id: 12) - tests recursive addReplyToComment
+    await forumStore.addReply(1, 12, 'Reply to nested')
+    expect(forumStore.posts[0].comments[1].replies![0].replies!.length).toBe(1)
+    expect(forumStore.posts[0].comments[1].replies![0].replies![0].content).toBe('Reply to nested')
+  })
+
+  it('loading replies and then replying', async () => {
+    server.use(
+      http.get('/api/forum/posts', () => {
+        return HttpResponse.json([
+          {
+            id: 1,
+            title: 'Post with Replies',
+            content: 'Content',
+            author: 'user1',
+            timestamp: '1h ago',
+            comments: [
+              {
+                id: 10,
+                author: 'user2',
+                timestamp: '30m ago',
+                content: 'Top level comment',
+                replyCount: 2,
+                replies: []
+              }
+            ]
+          }
+        ])
+      }),
+      http.get('/api/forum/comments/:id/replies', ({ params }) => {
+        if (params.id === '10') {
+          return HttpResponse.json([
+            {
+              id: 11,
+              author: 'user3',
+              timestamp: '20m ago',
+              content: 'Loaded reply 1',
+              replies: []
+            },
+            {
+              id: 12,
+              author: 'user4',
+              timestamp: '10m ago',
+              content: 'Loaded reply 2',
+              replies: []
+            }
+          ])
+        }
+        return HttpResponse.json([])
+      }),
+      http.post('/api/forum/comments', async ({ request }) => {
+        const data = (await request.json()) as Record<string, any>
+        return HttpResponse.json({
+          id: 999,
+          author: 'testuser',
+          timestamp: 'Just now',
+          replies: [],
+          ...data
+        })
+      })
+    )
+
+    const store = useAuthStore()
     store.setTokens('mock-token')
     store.accessToken =
       btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' })) +
@@ -416,25 +484,44 @@ describe('Forum.vue Integration', () => {
       btoa(JSON.stringify({ username: 'testuser' })) +
       '.signature'
 
-    // 2. Test handleReply for a top-level comment (id: 10)
-    await vm.handleReply(1, 10, 'Reply to top level')
+    const wrapper = mountComponent()
     await new Promise((resolve) => setTimeout(resolve, 50))
 
-    expect(vm.posts[0].comments[0].replies.length).toBe(1)
-    expect(vm.posts[0].comments[0].replies[0].content).toBe('Reply to top level')
-
-    // 3. Test handleReply for a nested comment (id: 12) - tests recursive addReplyToComment
-    await vm.handleReply(1, 12, 'Reply to nested')
+    // Expand comments section
+    await wrapper.find('.action-btn').trigger('click')
     await new Promise((resolve) => setTimeout(resolve, 50))
 
-    expect(vm.posts[0].comments[1].replies[0].replies.length).toBe(1)
-    expect(vm.posts[0].comments[1].replies[0].replies[0].content).toBe('Reply to nested')
+    const topComment = wrapper.find('.comments-list > .comment')
 
-    // 4. Test addReplyToComment returning false (parent comment not found)
-    const result = vm.addReplyToComment(vm.posts[0].comments, 9999, {
-      id: 1000,
-      content: 'Lost comment'
-    })
-    expect(result).toBe(false)
+    // Click "Load Replies"
+    const loadRepliesBtn = topComment.findAll('.action-btn').find(b => b.text() === 'Load Replies')
+    expect(loadRepliesBtn).toBeDefined()
+    await loadRepliesBtn!.trigger('click')
+    await new Promise((resolve) => setTimeout(resolve, 50))
+
+    // Assert that the loaded replies are visible
+    expect(topComment.text()).toContain('Loaded reply 1')
+    expect(topComment.text()).toContain('Loaded reply 2')
+
+    // Click "Reply" on the top level comment
+    const replyBtn = topComment.findAll('.action-btn').find(b => b.text() === 'Reply')
+    await replyBtn!.trigger('click')
+    await new Promise((resolve) => setTimeout(resolve, 50))
+
+    // Fill and submit reply
+    const replyInput = topComment.find('.reply-input textarea')
+    await replyInput.setValue('My new reply to the top level comment')
+    
+    const submitBtn = topComment.find('.btn-submit')
+    await submitBtn.trigger('click')
+    await new Promise((resolve) => setTimeout(resolve, 50))
+    await wrapper.vm.$nextTick() // Ensure reactivity is completely flushed
+
+    // The loaded replies should not disappear
+    expect(topComment.text()).toContain('Loaded reply 1')
+    expect(topComment.text()).toContain('Loaded reply 2')
+
+    // The new reply should be visible in the UI
+    expect(topComment.text()).toContain('My new reply to the top level comment')
   })
 })

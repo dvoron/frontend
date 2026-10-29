@@ -4,14 +4,17 @@ export const handlers = [
   // Authentication
   http.post('/api/auth/login', () => {
     return HttpResponse.json({
-      accessToken: 'mock-access-token',
-      refreshToken: 'mock-refresh-token'
+      accessToken: 'mock-access-token'
     })
   }),
   http.post('/api/auth/register', () => {
     return HttpResponse.json({
-      accessToken: 'mock-access-token',
-      refreshToken: 'mock-refresh-token'
+      accessToken: 'mock-access-token'
+    })
+  }),
+  http.post('/api/auth/refresh', () => {
+    return HttpResponse.json({
+      accessToken: 'mock-access-token'
     })
   }),
   http.post('/api/auth/logout', () => {
