@@ -64,12 +64,12 @@ async function submit() {
       authStore.setTokens(data.accessToken)
       router.push({ name: 'home' })
     } else if (status === 409) {
-      if (data.code === 'EMAIL_ALREADY_TAKEN') {
+      if (data?.code === 'EMAIL_ALREADY_TAKEN') {
         emailError.value = data.message
-      } else if (data.code === 'USERNAME_ALREADY_TAKEN') {
+      } else if (data?.code === 'USERNAME_ALREADY_TAKEN') {
         usernameError.value = data.message
       } else {
-        generalError.value = data.message || 'Something went wrong. Please try again.'
+        generalError.value = data?.message || 'Something went wrong. Please try again.'
       }
     } else if (status === 400) {
       generalError.value = data?.message || 'Invalid request. Please check your input.'

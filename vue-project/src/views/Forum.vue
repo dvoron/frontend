@@ -91,7 +91,8 @@ const loadPosts = async (loadMore = false) => {
   try {
     const cursor =
       loadMore && posts.value.length > 0 ? posts.value[posts.value.length - 1].id : undefined
-    const { data, status } = await getAllPosts(cursor)
+    const size = 10
+    const { data, status } = await getAllPosts(cursor, size)
     if (status >= 200 && status < 300) {
       data.forEach((post: Post) => {
         post.comments = post.comments || []
@@ -101,7 +102,7 @@ const loadPosts = async (loadMore = false) => {
       } else {
         posts.value = data
       }
-      hasMore.value = data.length === 10
+      hasMore.value = data.length === size
     } else {
       loadPostsError.value = 'Failed to load posts. Please try again.'
     }
