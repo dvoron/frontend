@@ -15,7 +15,9 @@ export const useAuthStore = defineStore('auth', {
       if (!state.accessToken) return null
       try {
         const decoded = jwtDecode<{ sub?: string | number; username?: string }>(state.accessToken)
-        return decoded.sub ? Number(decoded.sub) : null
+        const sub = decoded.sub
+        if (typeof sub === 'string' && isNaN(Number(sub))) return null
+        return sub ? Number(sub) : null
       } catch (e) {
         return null
       }
@@ -23,7 +25,8 @@ export const useAuthStore = defineStore('auth', {
     username: (state) => {
       if (!state.accessToken) return null
       try {
-        return jwtDecode<{ sub?: string | number; username?: string }>(state.accessToken).username
+        const decoded = jwtDecode<{ sub?: string | number; username?: string }>(state.accessToken)
+        return decoded.username || null
       } catch (e) {
         return null
       }

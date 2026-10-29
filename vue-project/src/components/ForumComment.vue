@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import type { Comment } from '@/types/forum'
 import { useAuthStore } from '@/stores/auth'
 import { useForumStore } from '@/stores/forum'
 import { getCommentReplies } from '@/services/ForumService'
-import type { Comment } from '@/types/forum'
 
 const authStore = useAuthStore()
 const forumStore = useForumStore()

@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import type { Comment, Post } from '@/types/forum'
 import { useAuthStore } from '@/stores/auth'
 import { useForumStore } from '@/stores/forum'
 import ForumComment from '@/components/ForumComment.vue'
 import { getPostComments } from '@/services/ForumService'
-import type { Comment, Post } from '@/types/forum'
 
 const authStore = useAuthStore()
 const forumStore = useForumStore()
