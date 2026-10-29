@@ -20,28 +20,13 @@ const replyError = ref('')
 const isLoadingReplies = ref(false)
 const isSubmitting = ref(false)
 
-const localReplies = ref<Comment[]>(props.comment.replies || [])
-
-const showReplies = ref(!!(localReplies.value && localReplies.value.length > 0))
-const repliesLoaded = ref(!!(localReplies.value && localReplies.value.length > 0))
+const showReplies = ref(!!(props.comment.replies && props.comment.replies.length > 0))
+const repliesLoaded = ref(
+  !!(props.comment.replies && props.comment.replies.length > 0 && props.comment.replies.length >= (props.comment.replyCount || 0))
+)
 const repliesPage = ref(0)
 const hasMoreReplies = ref(
-  props.comment.replyCount ? (localReplies.value.length === 0) : false
-)
-
-import { watch } from 'vue'
-watch(
-  () => props.comment.replies,
-  (newReplies) => {
-    if (newReplies) {
-      localReplies.value = newReplies
-      if (newReplies.length > 0) {
-        repliesLoaded.value = true
-        showReplies.value = true
-      }
-    }
-  },
-  { deep: true }
+  props.comment.replyCount ? (!props.comment.replies || props.comment.replies.length < props.comment.replyCount) : false
 )
 
 const toggleReplies = async () => {
@@ -58,11 +43,19 @@ const loadMoreReplies = async () => {
   try {
     const { data, status } = await getCommentReplies(props.comment.id, repliesPage.value, 10)
     if (status >= 200 && status < 300) {
-      if (repliesPage.value === 0) {
-        localReplies.value = data
-      } else {
-        localReplies.value.push(...data)
+      if (!props.comment.replies) {
+        props.comment.replies = []
       }
+      
+      const existingIds = new Set(props.comment.replies.map(r => r.id))
+      const newReplies = data.filter((r: Comment) => !existingIds.has(r.id))
+      
+      if (repliesPage.value === 0) {
+        props.comment.replies.unshift(...newReplies)
+      } else {
+        props.comment.replies.push(...newReplies)
+      }
+      
       repliesLoaded.value = true
       repliesPage.value++
       hasMoreReplies.value = data.length === 10
@@ -154,9 +147,9 @@ const handleChildReply = (
       </div>
     </div>
 
-    <div class="replies" v-if="showReplies && localReplies && localReplies.length > 0">
+    <div class="replies" v-if="showReplies && comment.replies && comment.replies.length > 0">
       <ForumComment
-        v-for="reply in localReplies"
+        v-for="reply in comment.replies"
         :key="reply.id"
         :comment="reply"
         @reply="handleChildReply"
