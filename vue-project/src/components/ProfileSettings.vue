@@ -130,7 +130,12 @@ const handleSave = async () => {
       authStore.setTokens(data.accessToken)
     } else if (user.value.username !== props.initialUser.username) {
       // Refresh the token to update the username in the auth store
-      await authStore.tryRefresh()
+      const refreshed = await authStore.tryRefresh()
+      if (!refreshed) {
+        import('@/router').then(({ default: router }) => {
+          router.push({ name: 'login', query: { redirect: router.currentRoute.value.fullPath } })
+        })
+      }
     }
 
     emit('editingChange', false)

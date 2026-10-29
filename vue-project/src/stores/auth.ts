@@ -49,6 +49,7 @@ export const useAuthStore = defineStore('auth', {
             this.setTokens(data.accessToken)
             return true
           }
+          this.clearTokens()
           return false
         } finally {
           refreshPromise = null
