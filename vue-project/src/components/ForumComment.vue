@@ -68,10 +68,6 @@ const loadMoreReplies = async () => {
     replyError.value = 'An error occurred while loading replies.'
   } finally {
     isLoadingReplies.value = false
-    if (replyError.value && !showReplyInput.value) {
-      // If there's an error and the reply input isn't open, ensure the user can see the error
-      showReplyInput.value = true
-    }
   }
 }
 
