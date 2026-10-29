@@ -95,22 +95,6 @@ const shouldSkipRefresh = (config: import('axios').InternalAxiosRequestConfig) =
   const url = config.url || ''
   if (url.startsWith('/api/auth/')) return true
 
-  if (url.match(/^\/api\/users\/\d+$/)) {
-    const method = config.method?.toLowerCase()
-    if (method === 'put' || method === 'delete') {
-      if (config.data) {
-        try {
-          const data = typeof config.data === 'string' ? JSON.parse(config.data) : config.data
-          if (data && (data.oldPassword || data.password)) {
-            return true
-          }
-        } catch (e) {
-          // Ignore parse errors
-        }
-      }
-    }
-  }
-
   return false
 }
 
