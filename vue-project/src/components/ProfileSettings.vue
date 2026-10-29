@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { updateUser } from '@/services/UserService'
 import type { UpdateUserDto } from '@/dto/UpdateUserDto'
@@ -16,6 +17,7 @@ const props = defineProps<{
 const emit = defineEmits(['profileUpdated', 'editingChange'])
 
 const authStore = useAuthStore()
+const router = useRouter()
 
 const isEditing = ref(false)
 const isSaving = ref(false)
@@ -132,9 +134,7 @@ const handleSave = async () => {
       // Refresh the token to update the username in the auth store
       const refreshed = await authStore.tryRefresh()
       if (!refreshed) {
-        import('@/router').then(({ default: router }) => {
-          router.push({ name: 'login', query: { redirect: router.currentRoute.value.fullPath } })
-        })
+        router.push({ name: 'login', query: { redirect: router.currentRoute.value.fullPath } })
       }
     }
 

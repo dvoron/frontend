@@ -1,7 +1,12 @@
 import axios from 'axios'
 import logger from '@/utils/logger'
-import router from '@/router'
 import { useAuthStore } from '@/stores/auth'
+
+let authFailCallback: (() => void) | null = null
+
+export const setAuthFailCallback = (cb: () => void) => {
+  authFailCallback = cb
+}
 
 const apiClient = axios.create({
   // baseURL: import.meta.env.VITE_API_BASE_URL || '',
@@ -134,12 +139,12 @@ apiClient.interceptors.response.use(
             return apiClient(originalRequest)
           } else {
             auth.clearTokens()
-            router.push({ name: 'login', query: { redirect: router.currentRoute.value.fullPath } })
+            if (authFailCallback) authFailCallback()
           }
         } catch (refreshError) {
           const auth = useAuthStore()
           auth.clearTokens()
-          router.push({ name: 'login', query: { redirect: router.currentRoute.value.fullPath } })
+          if (authFailCallback) authFailCallback()
         }
       }
     } else if (error.request) {

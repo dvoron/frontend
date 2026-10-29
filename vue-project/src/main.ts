@@ -10,7 +10,11 @@ const pinia = createPinia()
 app.use(pinia)
 
 import logger from '@/utils/logger'
-import { sanitizeAxiosError } from '@/utils/axios'
+import { sanitizeAxiosError, setAuthFailCallback } from '@/utils/axios'
+
+setAuthFailCallback(() => {
+  router.push({ name: 'login', query: { redirect: router.currentRoute.value.fullPath } })
+})
 
 app.config.errorHandler = (err, instance, info) => {
   logger.error('Vue Error:', sanitizeAxiosError(err), info)
