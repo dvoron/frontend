@@ -40,6 +40,8 @@ const loadMoreReplies = async () => {
   if (isLoadingReplies.value || !hasMoreReplies.value) return
 
   isLoadingReplies.value = true
+  const previousError = replyError.value
+  replyError.value = ''
   try {
     const { data, status } = await getCommentReplies(props.comment.id, repliesPage.value, 10)
     if (status >= 200 && status < 300) {
@@ -59,9 +61,17 @@ const loadMoreReplies = async () => {
       repliesLoaded.value = true
       repliesPage.value++
       hasMoreReplies.value = data.length === 10
+    } else {
+      replyError.value = 'Failed to load replies. Please try again.'
     }
+  } catch (e) {
+    replyError.value = 'An error occurred while loading replies.'
   } finally {
     isLoadingReplies.value = false
+    if (replyError.value && !showReplyInput.value) {
+      // If there's an error and the reply input isn't open, ensure the user can see the error
+      showReplyInput.value = true
+    }
   }
 }
 
@@ -119,6 +129,10 @@ const handleChildReply = (
       >
         {{ isLoadingReplies ? 'Loading...' : showReplies ? 'Hide Replies' : 'Load Replies' }}
       </button>
+    </div>
+    
+    <div v-if="replyError && !showReplyInput" class="error-message" style="margin-top: 8px;">
+      {{ replyError }}
     </div>
 
     <div v-if="showReplyInput" class="reply-input">
