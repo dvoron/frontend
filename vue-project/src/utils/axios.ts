@@ -168,13 +168,29 @@ export async function request<T = any>(
       data: response.data
     }
   } catch (error) {
-    if (axios.isAxiosError(error) && error.response) {
-      return {
-        ok: false,
-        status: error.response.status,
-        data: error.response.data
+    if (axios.isAxiosError(error)) {
+      if (error.response) {
+        return {
+          ok: false,
+          status: error.response.status,
+          data: error.response.data
+        }
+      }
+      
+      // Handle timeout specifically
+      if (error.code === 'ECONNABORTED') {
+        logger.error('API Request Timeout', sanitizeAxiosError(error))
+        return {
+          ok: false,
+          status: 504,
+          data: { message: 'Request timed out' } as any
+        }
       }
     }
+    
+    // Log any other errors (network errors, interceptor errors, etc.)
+    logger.error('API Request Failed', error instanceof Error ? error.message : String(error))
+    
     return {
       ok: false,
       status: 503,
