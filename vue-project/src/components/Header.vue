@@ -8,27 +8,21 @@ const authStore = useAuthStore()
 const router = useRouter()
 
 const isLoggingOut = ref(false)
-const logoutError = ref('')
 
 async function onLogout() {
   if (isLoggingOut.value) return
 
   isLoggingOut.value = true
-  logoutError.value = ''
 
   try {
     if (authStore.accessToken) {
-      const { status } = await logout()
-      if (status < 200 || status >= 300) {
-        logoutError.value = 'Failed to logout. Please try again.'
-        return
-      }
+      await logout()
     }
+  } catch (e) {
+    // Ignore errors during logout, we want to clear local state anyway
+  } finally {
     authStore.clearTokens()
     router.push({ name: 'login' })
-  } catch (e) {
-    logoutError.value = 'An error occurred during logout.'
-  } finally {
     isLoggingOut.value = false
   }
 }
@@ -46,7 +40,6 @@ async function onLogout() {
 
     <div class="flex items-center gap-3">
       <template v-if="authStore.isLoggedIn">
-        <span v-if="logoutError" class="text-red-500 text-sm font-semibold">{{ logoutError }}</span>
         <button
           @click="onLogout"
           :disabled="isLoggingOut"
