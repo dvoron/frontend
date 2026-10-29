@@ -4,40 +4,19 @@ import { useAuthStore } from '@/stores/auth'
 import { deleteUser } from '@/services/UserService'
 import { useRouter } from 'vue-router'
 
-defineProps({
-  isSaving: {
-    type: Boolean,
-    default: false
-  },
-  errorMessage: {
-    type: String,
-    default: ''
-  }
-})
-
-defineEmits(['cancelEdit'])
+const emit = defineEmits(['cancel'])
 
 const authStore = useAuthStore()
 const router = useRouter()
 
 const isDeleting = ref(false)
-const deleteState = ref('idle') // 'idle', 'password', 'confirm'
+const deleteState = ref('password') // 'password', 'confirm'
 const deletePassword = ref('')
 const deleteError = ref('')
 
-const startDelete = () => {
-  deleteState.value = 'password'
-  deletePassword.value = ''
-  deleteError.value = ''
-}
-
 const cancelDelete = () => {
-  deleteState.value = 'idle'
-  deletePassword.value = ''
-  deleteError.value = ''
+  emit('cancel')
 }
-
-defineExpose({ cancelDelete })
 
 const promptDeleteConfirmation = async () => {
   if (!deletePassword.value) {
@@ -77,44 +56,9 @@ const confirmDeleteAccount = async () => {
 
 <template>
   <div>
-    <!-- Standard Footer -->
-    <div
-      v-if="deleteState === 'idle'"
-      class="py-4 sm:py-5 px-6 flex justify-between items-center bg-gray-50 rounded-b-lg"
-    >
-      <div>
-        <button
-          type="button"
-          @click="startDelete"
-          :disabled="isSaving"
-          class="inline-flex justify-center py-2 px-4 border border-red-300 shadow-sm text-sm font-medium rounded-md text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 transition-colors"
-        >
-          Delete Account
-        </button>
-      </div>
-      <div class="flex items-center space-x-4">
-        <span v-if="errorMessage" class="text-red-600 text-sm font-medium">{{ errorMessage }}</span>
-        <button
-          type="button"
-          @click="$emit('cancelEdit')"
-          :disabled="isSaving"
-          class="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 disabled:opacity-50 transition-colors"
-        >
-          Cancel
-        </button>
-        <button
-          type="submit"
-          :disabled="isSaving"
-          class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 disabled:opacity-50 transition-colors"
-        >
-          {{ isSaving ? 'Saving...' : 'Save Changes' }}
-        </button>
-      </div>
-    </div>
-
     <!-- Delete Password Footer -->
     <div
-      v-else-if="deleteState === 'password'"
+      v-if="deleteState === 'password'"
       class="py-4 sm:py-5 px-6 bg-red-50 rounded-b-lg border-t border-red-200"
     >
       <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4">

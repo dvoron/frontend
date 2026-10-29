@@ -23,7 +23,7 @@ const isEditing = ref(false)
 const isSaving = ref(false)
 const errorMessage = ref('')
 const successMessage = ref('')
-const deleteDialogRef = ref<InstanceType<typeof ProfileDeleteAccountDialog> | null>(null)
+const deleteDialogState = ref('idle') // 'idle', 'active'
 
 const user = ref({
   username: '',
@@ -60,9 +60,7 @@ const cancelEdit = () => {
   user.value.newPassword = ''
   errorMessage.value = ''
 
-  if (deleteDialogRef.value) {
-    deleteDialogRef.value.cancelDelete()
-  }
+  deleteDialogState.value = 'idle'
 
   emit('editingChange', false)
 }
@@ -307,11 +305,43 @@ const handleSave = async () => {
             </div>
           </div>
 
+          <div
+            v-if="deleteDialogState === 'idle'"
+            class="py-4 sm:py-5 px-6 flex justify-between items-center bg-gray-50 rounded-b-lg"
+          >
+            <div>
+              <button
+                type="button"
+                @click="deleteDialogState = 'active'"
+                :disabled="isSaving"
+                class="inline-flex justify-center py-2 px-4 border border-red-300 shadow-sm text-sm font-medium rounded-md text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 transition-colors"
+              >
+                Delete Account
+              </button>
+            </div>
+            <div class="flex items-center space-x-4">
+              <span v-if="errorMessage" class="text-red-600 text-sm font-medium">{{ errorMessage }}</span>
+              <button
+                type="button"
+                @click="cancelEdit"
+                :disabled="isSaving"
+                class="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 disabled:opacity-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                :disabled="isSaving"
+                class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 disabled:opacity-50 transition-colors"
+              >
+                {{ isSaving ? 'Saving...' : 'Save Changes' }}
+              </button>
+            </div>
+          </div>
+
           <ProfileDeleteAccountDialog
-            ref="deleteDialogRef"
-            :isSaving="isSaving"
-            :errorMessage="errorMessage"
-            @cancelEdit="cancelEdit"
+            v-else
+            @cancel="deleteDialogState = 'idle'"
           />
         </form>
       </div>
