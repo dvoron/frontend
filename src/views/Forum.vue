@@ -16,7 +16,6 @@ const getCurrentUsername = () => {
 
 // Store state is used directly in the template via forumStore
 
-
 interface PostUiState {
   showComments: boolean
   newCommentContent: string
@@ -49,7 +48,7 @@ const getPostUiState = (postId: number): PostUiState => {
 const toggleComments = async (post: Post) => {
   const uiState = getPostUiState(post.id)
   uiState.showComments = !uiState.showComments
-  
+
   if (uiState.showComments && !uiState.commentsLoaded) {
     loadPostComments(post)
   }
@@ -58,7 +57,7 @@ const toggleComments = async (post: Post) => {
 const loadPostComments = async (post: Post) => {
   const uiState = getPostUiState(post.id)
   if (uiState.isLoadingComments || !uiState.hasMoreComments) return
-  
+
   uiState.isLoadingComments = true
   try {
     const { data, status } = await getPostComments(post.id, uiState.commentsPage, 10)
@@ -92,9 +91,9 @@ const isCreatingPost = ref(false)
 const createPost = async () => {
   if (isCreatingPost.value) return
   if (!authStore.accessToken) return
-  
+
   createPostError.value = ''
-  
+
   if (!newPost.value.title.trim()) {
     createPostError.value = 'Title is required to create a post.'
     return
@@ -203,10 +202,7 @@ const addComment = async (post: Post) => {
         <p class="content">{{ post.content }}</p>
 
         <div class="post-actions">
-          <button
-            class="action-btn"
-            @click="toggleComments(post)"
-          >
+          <button class="action-btn" @click="toggleComments(post)">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="16"
@@ -275,29 +271,52 @@ const addComment = async (post: Post) => {
               :postId="post.id"
             />
 
-            <div v-if="post.comments.length === 0 && getPostUiState(post.id).commentsLoaded" class="no-comments">
+            <div
+              v-if="post.comments.length === 0 && getPostUiState(post.id).commentsLoaded"
+              class="no-comments"
+            >
               No comments yet. Be the first to share your thoughts!
             </div>
-            
-            <div v-if="getPostUiState(post.id).isLoadingComments" style="text-align: center; color: #888; padding: 10px;">
+
+            <div
+              v-if="getPostUiState(post.id).isLoadingComments"
+              style="text-align: center; color: #888; padding: 10px"
+            >
               Loading comments...
             </div>
-            
-            <div v-if="getPostUiState(post.id).hasMoreComments && getPostUiState(post.id).commentsLoaded" style="text-align: center; margin-top: 10px;">
-              <button class="action-btn" style="margin: 0 auto;" @click="loadPostComments(post)">Load More Comments</button>
+
+            <div
+              v-if="
+                getPostUiState(post.id).hasMoreComments && getPostUiState(post.id).commentsLoaded
+              "
+              style="text-align: center; margin-top: 10px"
+            >
+              <button class="action-btn" style="margin: 0 auto" @click="loadPostComments(post)">
+                Load More Comments
+              </button>
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <div v-if="forumStore.loadPostsError" class="error-message" style="text-align: center; margin-top: 20px">
+    <div
+      v-if="forumStore.loadPostsError"
+      class="error-message"
+      style="text-align: center; margin-top: 20px"
+    >
       {{ forumStore.loadPostsError }}
-      <button class="btn-primary" @click="forumStore.loadPosts(false)" style="margin-left: 10px">Retry</button>
+      <button class="btn-primary" @click="forumStore.loadPosts(false)" style="margin-left: 10px">
+        Retry
+      </button>
     </div>
 
     <div v-if="forumStore.hasMore && !forumStore.loadPostsError" class="load-more-container">
-      <button class="btn-primary" @click="forumStore.loadMorePosts" :disabled="forumStore.isLoadingPosts">
+      <button
+        class="btn-primary"
+        @click="forumStore.loadMorePosts"
+        :disabled="forumStore.isLoadingPosts"
+      >
         {{ forumStore.isLoadingPosts ? 'Loading...' : 'Load More' }}
       </button>
     </div>

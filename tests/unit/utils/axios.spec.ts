@@ -18,7 +18,7 @@ let mockRefreshCalls = 0
 vi.mock('@/services/UserService', () => ({
   refresh: vi.fn(async () => {
     mockRefreshCalls++
-    await new Promise(r => setTimeout(r, 20))
+    await new Promise((r) => setTimeout(r, 20))
     return { data: { accessToken: 'new-token' }, status: 200 }
   })
 }))
@@ -141,7 +141,9 @@ describe('axios util', () => {
             })
           }
         })
-      } catch (e) {}
+      } catch (e) {
+        //
+      }
 
       expect(refreshSpy).not.toHaveBeenCalled()
     })
@@ -149,7 +151,7 @@ describe('axios util', () => {
     it('retries original request on 401 after successful refresh', async () => {
       const auth = useAuthStore()
       auth.setTokens('expired-token')
-      
+
       let attempt = 0
 
       const response = await apiClient.get('/api/test', {
@@ -157,7 +159,13 @@ describe('axios util', () => {
           attempt++
           if (attempt === 1) {
             const error = new axios.AxiosError('Unauthorized', '401', config)
-            error.response = { status: 401, data: {}, statusText: 'Unauthorized', headers: {}, config }
+            error.response = {
+              status: 401,
+              data: {},
+              statusText: 'Unauthorized',
+              headers: {},
+              config
+            }
             throw error
           }
           return { data: 'success', status: 200, statusText: 'OK', headers: {}, config }
@@ -173,7 +181,7 @@ describe('axios util', () => {
     it('clears token and calls authFailCallback on failed refresh', async () => {
       const auth = useAuthStore()
       auth.setTokens('expired-token')
-      
+
       // Override the mock for just this test
       const { refresh } = await import('@/services/UserService')
       vi.mocked(refresh).mockResolvedValueOnce({ data: {}, status: 401 } as any)
@@ -186,7 +194,13 @@ describe('axios util', () => {
         await apiClient.get('/api/test', {
           adapter: async (config) => {
             const error = new axios.AxiosError('Unauthorized', '401', config)
-            error.response = { status: 401, data: {}, statusText: 'Unauthorized', headers: {}, config }
+            error.response = {
+              status: 401,
+              data: {},
+              statusText: 'Unauthorized',
+              headers: {},
+              config
+            }
             throw error
           }
         })
@@ -203,17 +217,24 @@ describe('axios util', () => {
       const auth = useAuthStore()
       auth.setTokens('expired-token')
 
-      const makeRequest = () => apiClient.get('/api/test', {
-        adapter: async (config) => {
-          // If using the old token, return 401
-          if (config.headers?.Authorization === 'Bearer expired-token') {
-            const error = new axios.AxiosError('Unauthorized', '401', config)
-            error.response = { status: 401, data: {}, statusText: 'Unauthorized', headers: {}, config }
-            throw error
+      const makeRequest = () =>
+        apiClient.get('/api/test', {
+          adapter: async (config) => {
+            // If using the old token, return 401
+            if (config.headers?.Authorization === 'Bearer expired-token') {
+              const error = new axios.AxiosError('Unauthorized', '401', config)
+              error.response = {
+                status: 401,
+                data: {},
+                statusText: 'Unauthorized',
+                headers: {},
+                config
+              }
+              throw error
+            }
+            return { data: 'success', status: 200, statusText: 'OK', headers: {}, config }
           }
-          return { data: 'success', status: 200, statusText: 'OK', headers: {}, config }
-        }
-      })
+        })
 
       // Fire two requests concurrently
       const results = await Promise.allSettled([makeRequest(), makeRequest()])

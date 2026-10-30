@@ -32,7 +32,7 @@ async function submit() {
     usernameError.value = "Username cannot contain '@'"
     hasError = true
   } else if (registerForm.username.trim().length === 0) {
-    usernameError.value = "Username must not be purely whitespace"
+    usernameError.value = 'Username must not be purely whitespace'
     hasError = true
   }
 
@@ -90,7 +90,12 @@ async function submit() {
       <p v-if="generalError" class="text-red-600 text-sm">{{ generalError }}</p>
 
       <div class="flex flex-col gap-1">
-        <label for="register-username">Username <span class="text-xs text-gray-500 font-normal">(Must not be purely whitespace)</span></label>
+        <label for="register-username"
+          >Username
+          <span class="text-xs text-gray-500 font-normal"
+            >(Must not be purely whitespace)</span
+          ></label
+        >
         <input
           id="register-username"
           v-model="registerForm.username"

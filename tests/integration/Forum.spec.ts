@@ -494,7 +494,9 @@ describe('Forum.vue Integration', () => {
     const topComment = wrapper.find('.comments-list > .comment')
 
     // Click "Load Replies"
-    const loadRepliesBtn = topComment.findAll('.action-btn').find(b => b.text() === 'Load Replies')
+    const loadRepliesBtn = topComment
+      .findAll('.action-btn')
+      .find((b) => b.text() === 'Load Replies')
     expect(loadRepliesBtn).toBeDefined()
     await loadRepliesBtn!.trigger('click')
     await new Promise((resolve) => setTimeout(resolve, 50))
@@ -504,14 +506,14 @@ describe('Forum.vue Integration', () => {
     expect(topComment.text()).toContain('Loaded reply 2')
 
     // Click "Reply" on the top level comment
-    const replyBtn = topComment.findAll('.action-btn').find(b => b.text() === 'Reply')
+    const replyBtn = topComment.findAll('.action-btn').find((b) => b.text() === 'Reply')
     await replyBtn!.trigger('click')
     await new Promise((resolve) => setTimeout(resolve, 50))
 
     // Fill and submit reply
     const replyInput = topComment.find('.reply-input textarea')
     await replyInput.setValue('My new reply to the top level comment')
-    
+
     const submitBtn = topComment.find('.btn-submit')
     await submitBtn.trigger('click')
     await new Promise((resolve) => setTimeout(resolve, 50))

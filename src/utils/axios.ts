@@ -181,7 +181,7 @@ export async function request<T = any>(
           data: error.response.data
         }
       }
-      
+
       // Handle timeout specifically
       if (error.code === 'ECONNABORTED') {
         logger.error('API Request Timeout', sanitizeAxiosError(error))
@@ -192,10 +192,10 @@ export async function request<T = any>(
         }
       }
     }
-    
+
     // Log any other errors (network errors, interceptor errors, etc.)
     logger.error('API Request Failed', error instanceof Error ? error.message : String(error))
-    
+
     return {
       ok: false,
       status: 503,

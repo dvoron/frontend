@@ -77,7 +77,7 @@ const handleSave = async () => {
   }
 
   if (user.value.username.trim().length === 0) {
-    errorMessage.value = "Username must not be purely whitespace"
+    errorMessage.value = 'Username must not be purely whitespace'
     isSaving.value = false
     return
   }
@@ -324,7 +324,9 @@ const handleSave = async () => {
               </button>
             </div>
             <div class="flex items-center space-x-4">
-              <span v-if="errorMessage" class="text-red-600 text-sm font-medium">{{ errorMessage }}</span>
+              <span v-if="errorMessage" class="text-red-600 text-sm font-medium">{{
+                errorMessage
+              }}</span>
               <button
                 type="button"
                 @click="cancelEdit"
@@ -343,10 +345,7 @@ const handleSave = async () => {
             </div>
           </div>
 
-          <ProfileDeleteAccountDialog
-            v-else
-            @cancel="deleteDialogState = 'idle'"
-          />
+          <ProfileDeleteAccountDialog v-else @cancel="deleteDialogState = 'idle'" />
         </form>
       </div>
     </div>

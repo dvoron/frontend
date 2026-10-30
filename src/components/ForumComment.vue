@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import type { Comment } from '@/types/forum'
 import { useAuthStore } from '@/stores/auth'
 import { useForumStore } from '@/stores/forum'
@@ -19,14 +19,36 @@ const replyError = ref('')
 const isLoadingReplies = ref(false)
 const isSubmitting = ref(false)
 
-const showReplies = ref(!!(props.comment.replies && props.comment.replies.length > 0))
-const repliesLoaded = ref(
-  !!(props.comment.replies && props.comment.replies.length > 0 && props.comment.replies.length >= (props.comment.replyCount || 0))
+const localReplies = ref<Comment[]>([...(props.comment.replies ?? [])])
+
+watch(
+  () => props.comment.replies,
+  (incoming) => {
+    if (!incoming) return
+    const existingIds = new Set(localReplies.value.map((r) => r.id))
+    const additions = incoming.filter((r) => !existingIds.has(r.id))
+    if (additions.length) localReplies.value.push(...additions)
+  },
+  { deep: true }
 )
+
+const showReplies = ref(localReplies.value.length > 0)
+// const showReplies = ref(!!(props.comment.replies && props.comment.replies.length > 0))
+
+const repliesLoaded = ref(
+  localReplies.value.length > 0 && localReplies.value.length >= (props.comment.replyCount || 0)
+)
+
+// const repliesLoaded = ref(
+//   !!(props.comment.replies && props.comment.replies.length > 0 && props.comment.replies.length >= (props.comment.replyCount || 0))
+// )
 const repliesPage = ref(0)
 const hasMoreReplies = ref(
-  props.comment.replyCount ? (!props.comment.replies || props.comment.replies.length < props.comment.replyCount) : false
+  props.comment.replyCount ? localReplies.value.length < props.comment.replyCount : false
 )
+// const hasMoreReplies = ref(
+//   props.comment.replyCount ? (!props.comment.replies || props.comment.replies.length < props.comment.replyCount) : false
+// )
 
 const toggleReplies = async () => {
   showReplies.value = !showReplies.value
@@ -45,18 +67,18 @@ const loadMoreReplies = async () => {
     const { data, status } = await getCommentReplies(props.comment.id, repliesPage.value, 10)
     if (status >= 200 && status < 300) {
       if (!props.comment.replies) {
-        props.comment.replies = []
+        // props.comment.replies = []
       }
-      
-      const existingIds = new Set(props.comment.replies.map(r => r.id))
+
+      const existingIds = new Set(localReplies.value.map((r) => r.id))
       const newReplies = data.filter((r: Comment) => !existingIds.has(r.id))
-      
+
       if (repliesPage.value === 0) {
-        props.comment.replies.unshift(...newReplies)
+        localReplies.value.unshift(...newReplies)
       } else {
-        props.comment.replies.push(...newReplies)
+        localReplies.value.push(...newReplies)
       }
-      
+
       repliesLoaded.value = true
       repliesPage.value++
       hasMoreReplies.value = data.length === 10
@@ -118,8 +140,8 @@ const submitReply = async () => {
         {{ isLoadingReplies ? 'Loading...' : showReplies ? 'Hide Replies' : 'Load Replies' }}
       </button>
     </div>
-    
-    <div v-if="replyError && !showReplyInput" class="error-message" style="margin-top: 8px;">
+
+    <div v-if="replyError && !showReplyInput" class="error-message" style="margin-top: 8px">
       {{ replyError }}
     </div>
 
@@ -150,15 +172,15 @@ const submitReply = async () => {
       </div>
     </div>
 
-    <div class="replies" v-if="showReplies && comment.replies && comment.replies.length > 0">
+    <div class="replies" v-if="showReplies && localReplies && localReplies.length > 0">
       <ForumComment
-        v-for="reply in comment.replies"
+        v-for="reply in localReplies"
         :key="reply.id"
         :comment="reply"
         :postId="postId"
       />
-      
-      <div v-if="hasMoreReplies" style="margin-top: 8px;">
+
+      <div v-if="hasMoreReplies" style="margin-top: 8px">
         <button class="action-btn" @click="loadMoreReplies" :disabled="isLoadingReplies">
           {{ isLoadingReplies ? 'Loading...' : 'Load More Replies' }}
         </button>

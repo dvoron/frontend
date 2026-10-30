@@ -64,7 +64,7 @@ export const useForumStore = defineStore('forum', () => {
   const addComment = async (postId: number, content: string) => {
     const { data, status } = await apiCreateComment(postId, null, content)
     if (status >= 200 && status < 300) {
-      const post = posts.value.find(p => p.id === postId)
+      const post = posts.value.find((p) => p.id === postId)
       if (post) {
         post.comments.unshift(data)
         post.commentCount = (post.commentCount || 0) + 1
@@ -79,7 +79,7 @@ export const useForumStore = defineStore('forum', () => {
     parentId: number,
     newComment: Comment
   ): boolean => {
-    for (let comment of commentsList) {
+    for (const comment of commentsList) {
       if (comment.id === parentId) {
         if (!comment.replies) comment.replies = []
         comment.replies.push(newComment)

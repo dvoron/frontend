@@ -106,7 +106,7 @@ describe('ProfileSettings.vue', () => {
     const emailInput = wrapper.find('#email')
     await emailInput.setValue('newemail')
 
-    const cancelBtn = wrapper.findAll('button').find(b => b.text() === 'Cancel')
+    const cancelBtn = wrapper.findAll('button').find((b) => b.text() === 'Cancel')
     if (cancelBtn) await cancelBtn.trigger('click')
     await wrapper.vm.$nextTick()
 
