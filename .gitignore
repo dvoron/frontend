@@ -1,6 +1,6 @@
 .idea
 node_modules
-vue-project/dist
-vue-project/coverage
+dist
+coverage
 *.tsbuildinfo
 *.iml
