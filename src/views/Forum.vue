@@ -1,0 +1,517 @@
+<script setup lang="ts">
+import { ref, onMounted } from 'vue'
+import type { Comment, Post } from '@/types/forum'
+import { useAuthStore } from '@/stores/auth'
+import { useForumStore } from '@/stores/forum'
+import ForumComment from '@/components/ForumComment.vue'
+import { getPostComments } from '@/services/ForumService'
+
+const authStore = useAuthStore()
+const forumStore = useForumStore()
+
+// Helper to get current username
+const getCurrentUsername = () => {
+  return authStore.username || 'Guest'
+}
+
+// Store state is used directly in the template via forumStore
+
+interface PostUiState {
+  showComments: boolean
+  newCommentContent: string
+  commentError: string
+  isSubmittingComment: boolean
+  commentsLoaded: boolean
+  isLoadingComments: boolean
+  commentsPage: number
+  hasMoreComments: boolean
+}
+
+const postUiStates = ref<Record<number, PostUiState>>({})
+
+const getPostUiState = (postId: number): PostUiState => {
+  if (!postUiStates.value[postId]) {
+    postUiStates.value[postId] = {
+      showComments: false,
+      newCommentContent: '',
+      commentError: '',
+      isSubmittingComment: false,
+      commentsLoaded: false,
+      isLoadingComments: false,
+      commentsPage: 0,
+      hasMoreComments: true
+    }
+  }
+  return postUiStates.value[postId]
+}
+
+const toggleComments = async (post: Post) => {
+  const uiState = getPostUiState(post.id)
+  uiState.showComments = !uiState.showComments
+
+  if (uiState.showComments && !uiState.commentsLoaded) {
+    loadPostComments(post)
+  }
+}
+
+const loadPostComments = async (post: Post) => {
+  const uiState = getPostUiState(post.id)
+  if (uiState.isLoadingComments || !uiState.hasMoreComments) return
+
+  uiState.isLoadingComments = true
+  try {
+    const { data, status } = await getPostComments(post.id, uiState.commentsPage, 10)
+    if (status >= 200 && status < 300) {
+      if (uiState.commentsPage === 0) {
+        post.comments = data
+      } else {
+        post.comments.push(...data)
+      }
+      uiState.commentsLoaded = true
+      uiState.commentsPage++
+      uiState.hasMoreComments = data.length === 10
+    }
+  } finally {
+    uiState.isLoadingComments = false
+  }
+}
+
+onMounted(() => {
+  forumStore.loadPosts()
+})
+
+const showNewPostForm = ref(false)
+const newPost = ref({
+  title: '',
+  content: ''
+})
+const createPostError = ref('')
+const isCreatingPost = ref(false)
+
+const createPost = async () => {
+  if (isCreatingPost.value) return
+  if (!authStore.accessToken) return
+
+  createPostError.value = ''
+
+  if (!newPost.value.title.trim()) {
+    createPostError.value = 'Title is required to create a post.'
+    return
+  }
+  if (newPost.value.title.length > 255 || (newPost.value.content || '').length > 2000) return
+
+  isCreatingPost.value = true
+
+  try {
+    const result = await forumStore.createPost(newPost.value.title, newPost.value.content)
+    if (result.success) {
+      newPost.value.title = ''
+      newPost.value.content = ''
+      showNewPostForm.value = false
+    } else {
+      createPostError.value = result.error || 'Failed to create post. Please try again.'
+    }
+  } finally {
+    isCreatingPost.value = false
+  }
+}
+
+const addComment = async (post: Post) => {
+  const uiState = getPostUiState(post.id)
+  if (uiState.isSubmittingComment) return
+  if (!authStore.accessToken) return
+  if (!uiState.newCommentContent?.trim()) return
+  if ((uiState.newCommentContent || '').length > 1000) return
+
+  uiState.isSubmittingComment = true
+  uiState.commentError = ''
+
+  try {
+    const result = await forumStore.addComment(post.id, uiState.newCommentContent)
+    if (result.success) {
+      uiState.newCommentContent = ''
+    } else {
+      uiState.commentError = result.error || 'Failed to add comment. Please try again.'
+    }
+  } finally {
+    uiState.isSubmittingComment = false
+  }
+}
+</script>
+
+<template>
+  <div class="forum-container">
+    <div class="header">
+      <h1>Community Forum</h1>
+      <button
+        v-if="authStore.isLoggedIn"
+        class="btn-primary"
+        @click="showNewPostForm = !showNewPostForm"
+      >
+        {{ showNewPostForm ? 'Cancel' : 'Create Post' }}
+      </button>
+    </div>
+
+    <!-- New Post Form -->
+    <div v-if="showNewPostForm" class="new-post-form card">
+      <h2>Create a new post</h2>
+      <div class="input-wrapper">
+        <input
+          v-model="newPost.title"
+          placeholder="Title"
+          aria-label="Post Title"
+          class="form-input"
+        />
+        <span class="char-counter" :class="{ error: newPost.title.length > 255 }"
+          >{{ newPost.title.length }}/255</span
+        >
+      </div>
+      <div class="input-wrapper">
+        <textarea
+          v-model="newPost.content"
+          placeholder="Text (optional)"
+          aria-label="Post Content"
+          class="form-input"
+          rows="4"
+        ></textarea>
+        <span class="char-counter" :class="{ error: newPost.content.length > 2000 }"
+          >{{ newPost.content.length }}/2000</span
+        >
+      </div>
+      <div v-if="createPostError" class="error-message">{{ createPostError }}</div>
+      <div class="form-actions">
+        <button
+          class="btn-primary"
+          @click="createPost"
+          :disabled="isCreatingPost || newPost.title.length > 255 || newPost.content.length > 2000"
+        >
+          {{ isCreatingPost ? 'Posting...' : 'Post' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Post List -->
+    <div class="post-list">
+      <div v-for="post in forumStore.posts" :key="post.id" class="post card">
+        <div class="post-header">
+          <span class="author">Posted by u/{{ post.author }}</span>
+          <span class="timestamp">{{ post.timestamp }}</span>
+        </div>
+
+        <h2 class="title">{{ post.title }}</h2>
+        <p class="content">{{ post.content }}</p>
+
+        <div class="post-actions">
+          <button class="action-btn" @click="toggleComments(post)">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path
+                d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"
+              ></path>
+            </svg>
+            {{ post.commentCount }} Comments
+          </button>
+        </div>
+
+        <!-- Comments Section -->
+        <div v-if="getPostUiState(post.id).showComments" class="comments-section">
+          <!-- Add Comment to Post -->
+          <div v-if="authStore.isLoggedIn" class="add-comment">
+            <p>
+              Comment as <strong>{{ getCurrentUsername() }}</strong>
+            </p>
+            <div class="input-wrapper">
+              <textarea
+                v-model="getPostUiState(post.id).newCommentContent"
+                placeholder="What are your thoughts?"
+                aria-label="Write a comment"
+                rows="3"
+                class="form-input"
+              ></textarea>
+              <span
+                class="char-counter"
+                :class="{ error: (getPostUiState(post.id).newCommentContent || '').length > 1000 }"
+                >{{ (getPostUiState(post.id).newCommentContent || '').length }}/1000</span
+              >
+            </div>
+            <div v-if="getPostUiState(post.id).commentError" class="error-message">
+              {{ getPostUiState(post.id).commentError }}
+            </div>
+            <div class="comment-btn-container">
+              <button
+                class="btn-primary"
+                @click="addComment(post)"
+                :disabled="
+                  getPostUiState(post.id).isSubmittingComment ||
+                  (getPostUiState(post.id).newCommentContent || '').length > 1000
+                "
+              >
+                {{ getPostUiState(post.id).isSubmittingComment ? 'Commenting...' : 'Comment' }}
+              </button>
+            </div>
+          </div>
+
+          <hr class="divider" />
+
+          <!-- Recursive Comments List -->
+          <div class="comments-list">
+            <ForumComment
+              v-for="comment in post.comments"
+              :key="comment.id"
+              :comment="comment"
+              :postId="post.id"
+            />
+
+            <div
+              v-if="post.comments.length === 0 && getPostUiState(post.id).commentsLoaded"
+              class="no-comments"
+            >
+              No comments yet. Be the first to share your thoughts!
+            </div>
+
+            <div
+              v-if="getPostUiState(post.id).isLoadingComments"
+              style="text-align: center; color: #888; padding: 10px"
+            >
+              Loading comments...
+            </div>
+
+            <div
+              v-if="
+                getPostUiState(post.id).hasMoreComments && getPostUiState(post.id).commentsLoaded
+              "
+              style="text-align: center; margin-top: 10px"
+            >
+              <button class="action-btn" style="margin: 0 auto" @click="loadPostComments(post)">
+                Load More Comments
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div
+      v-if="forumStore.loadPostsError"
+      class="error-message"
+      style="text-align: center; margin-top: 20px"
+    >
+      {{ forumStore.loadPostsError }}
+      <button class="btn-primary" @click="forumStore.loadPosts(false)" style="margin-left: 10px">
+        Retry
+      </button>
+    </div>
+
+    <div v-if="forumStore.hasMore && !forumStore.loadPostsError" class="load-more-container">
+      <button
+        class="btn-primary"
+        @click="forumStore.loadMorePosts"
+        :disabled="forumStore.isLoadingPosts"
+      >
+        {{ forumStore.isLoadingPosts ? 'Loading...' : 'Load More' }}
+      </button>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+.load-more-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.forum-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+  color: #e0e0e0;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.header h1 {
+  font-size: 1.8rem;
+  color: #000;
+  margin: 0;
+}
+
+.card {
+  background-color: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+  transition: border-color 0.2s;
+}
+
+.card:hover {
+  border-color: #444;
+}
+
+.new-post-form h2 {
+  margin-top: 0;
+  margin-bottom: 16px;
+  font-size: 1.2rem;
+}
+
+.form-input {
+  width: 100%;
+  background-color: #2a2a2a;
+  border: 1px solid #444;
+  color: white;
+  padding: 10px;
+  border-radius: 4px;
+  margin-bottom: 12px;
+  font-family: inherit;
+  box-sizing: border-box;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #42b883;
+}
+
+.input-wrapper {
+  margin-bottom: 12px;
+}
+
+.input-wrapper .form-input {
+  margin-bottom: 0;
+}
+
+.char-counter {
+  display: block;
+  text-align: right;
+  font-size: 0.75rem;
+  color: #888;
+  margin-top: 4px;
+}
+
+.char-counter.error {
+  color: #ff4d4f;
+}
+
+.error-message {
+  color: #ff4d4f;
+  font-size: 0.85rem;
+  margin-bottom: 12px;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btn-primary {
+  background-color: #42b883;
+  color: #1a1a1a;
+  border: none;
+  border-radius: 20px;
+  padding: 8px 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-color: #33a06f;
+}
+
+.btn-primary:disabled {
+  background-color: #2a5a43;
+  color: #888;
+  cursor: not-allowed;
+}
+
+.post-header {
+  font-size: 0.85rem;
+  color: #888;
+  margin-bottom: 8px;
+  display: flex;
+  gap: 10px;
+}
+
+.post .title {
+  margin: 0 0 10px 0;
+  font-size: 1.4rem;
+  color: #fff;
+}
+
+.post .content {
+  margin-bottom: 16px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.post-actions {
+  display: flex;
+  gap: 16px;
+}
+
+.action-btn {
+  background: none;
+  border: none;
+  color: #888;
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: 6px 8px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: bold;
+}
+
+.action-btn:hover {
+  background-color: #2a2a2a;
+}
+
+.comments-section {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #333;
+}
+
+.add-comment {
+  margin-bottom: 20px;
+}
+
+.add-comment p {
+  margin: 0 0 8px 0;
+  font-size: 0.9rem;
+  color: #aaa;
+}
+
+.comment-btn-container {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.divider {
+  border: 0;
+  border-top: 1px solid #333;
+  margin: 16px 0;
+}
+
+.no-comments {
+  text-align: center;
+  color: #888;
+  padding: 20px 0;
+  font-style: italic;
+}
+</style>

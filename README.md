@@ -9,16 +9,12 @@ This is the Vue.js frontend for the application, powered by Vite.
 
 ## Setup Instructions
 
-1. **Navigate to the project folder:**
+1. **Install dependencies:**
    ```bash
-   cd vue-project
+   npm install
    ```
 
-2. **Install Dependencies**
-    ```bash
-    npm install
-   ```
-3. **Run the Development Server:**
+2. **Run the Development Server:**
    ```bash
    npm run dev
    ```
@@ -30,6 +26,7 @@ This is the Vue.js frontend for the application, powered by Vite.
 
 - `npm run dev`: Starts the development server.
 - `npm run build`: Type-checks and builds the application for production.
+- `npm run preview`: Locally previews the production build.
 - `npm run test:unit`: Runs unit tests using Vitest.
 - `npm run test:coverage`: Runs unit tests with coverage.
 - `npm run lint`: Lints the codebase using ESLint.
