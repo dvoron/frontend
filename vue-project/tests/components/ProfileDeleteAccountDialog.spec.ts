@@ -44,7 +44,7 @@ describe('ProfileDeleteAccountDialog.vue', () => {
     })
   }
 
-  it('renders standard footer initially', () => {
+  it('renders password state initially', () => {
     const wrapper = mountComponent()
     const store = useAuthStore()
     store.setTokens('mock-token')
@@ -53,26 +53,12 @@ describe('ProfileDeleteAccountDialog.vue', () => {
       '.' +
       btoa(JSON.stringify({ sub: 1, username: 'testuser' })) +
       '.signature'
-    expect(wrapper.text()).toContain('Delete Account')
-    expect(wrapper.text()).toContain('Save Changes')
-  })
-
-  it('transitions to password state when Delete Account is clicked', async () => {
-    const wrapper = mountComponent()
-    const store = useAuthStore()
-    store.setTokens('mock-token')
-    store.accessToken =
-      btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' })) +
-      '.' +
-      btoa(JSON.stringify({ sub: 1, username: 'testuser' })) +
-      '.signature'
-    const deleteBtn = wrapper.find('button.text-red-700') // Delete Account button
-    await deleteBtn.trigger('click')
-
     expect(wrapper.text()).toContain('Enter password to confirm deletion')
+    expect(wrapper.text()).toContain('Continue')
+    expect(wrapper.text()).toContain('Cancel')
   })
 
-  it('cancels deletion and returns to idle state', async () => {
+  it('emits cancel when Cancel is clicked in password state', async () => {
     const wrapper = mountComponent()
     const store = useAuthStore()
     store.setTokens('mock-token')
@@ -81,29 +67,11 @@ describe('ProfileDeleteAccountDialog.vue', () => {
       '.' +
       btoa(JSON.stringify({ sub: 1, username: 'testuser' })) +
       '.signature'
-    const deleteBtn = wrapper.find('button.text-red-700')
-    await deleteBtn.trigger('click')
 
     const cancelBtn = wrapper.findAll('button').find((b) => b.text() === 'Cancel')
     if (cancelBtn) await cancelBtn.trigger('click')
 
-    expect(wrapper.text()).not.toContain('Enter password to confirm deletion')
-    expect(wrapper.text()).toContain('Delete Account')
-  })
-
-  it('emits cancelEdit when cancel button in standard footer is clicked', async () => {
-    const wrapper = mountComponent()
-    const store = useAuthStore()
-    store.setTokens('mock-token')
-    store.accessToken =
-      btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' })) +
-      '.' +
-      btoa(JSON.stringify({ sub: 1, username: 'testuser' })) +
-      '.signature'
-    const cancelBtn = wrapper.findAll('button').find((b) => b.text() === 'Cancel')
-    if (cancelBtn) await cancelBtn.trigger('click')
-
-    expect(wrapper.emitted('cancelEdit')).toBeTruthy()
+    expect(wrapper.emitted('cancel')).toBeTruthy()
   })
 
   it('verifies password and transitions to confirm state', async () => {
@@ -115,8 +83,6 @@ describe('ProfileDeleteAccountDialog.vue', () => {
       '.' +
       btoa(JSON.stringify({ sub: 1, username: 'testuser' })) +
       '.signature'
-    const deleteBtn = wrapper.find('button.text-red-700')
-    await deleteBtn.trigger('click')
 
     const passwordInput = wrapper.find('input[type="password"]')
     await passwordInput.setValue('mypassword')
@@ -130,7 +96,7 @@ describe('ProfileDeleteAccountDialog.vue', () => {
 
   it('shows error if password verification fails', async () => {
     vi.mocked(deleteUser).mockResolvedValueOnce({
-      data: { message: 'Invalid password' },
+      data: { message: 'Invalid password', code: 'INVALID_PASSWORD' },
       status: 400,
       ok: false
     } as any)
@@ -143,8 +109,6 @@ describe('ProfileDeleteAccountDialog.vue', () => {
       '.' +
       btoa(JSON.stringify({ sub: 1, username: 'testuser' })) +
       '.signature'
-    const deleteBtn = wrapper.find('button.text-red-700')
-    await deleteBtn.trigger('click')
 
     const passwordInput = wrapper.find('input[type="password"]')
     await passwordInput.setValue('wrongpassword')
@@ -171,8 +135,6 @@ describe('ProfileDeleteAccountDialog.vue', () => {
       '.' +
       btoa(JSON.stringify({ sub: 1, username: 'testuser' })) +
       '.signature'
-    const deleteBtn = wrapper.find('button.text-red-700')
-    await deleteBtn.trigger('click')
 
     const verifyBtn = wrapper.findAll('button').find((b) => b.text() === 'Continue')
     if (verifyBtn) await verifyBtn.trigger('click')
@@ -194,8 +156,7 @@ describe('ProfileDeleteAccountDialog.vue', () => {
       '.' +
       btoa(JSON.stringify({ sub: 1, username: 'testuser' })) +
       '.signature'
-    const startDeleteBtn = wrapper.find('button.text-red-700')
-    await startDeleteBtn.trigger('click')
+
     const passwordInput = wrapper.find('input[type="password"]')
     await passwordInput.setValue('mypassword')
     const verifyBtn = wrapper.findAll('button').find((b) => b.text() === 'Continue')
@@ -225,8 +186,7 @@ describe('ProfileDeleteAccountDialog.vue', () => {
       '.' +
       btoa(JSON.stringify({ sub: 1, username: 'testuser' })) +
       '.signature'
-    const startDeleteBtn = wrapper.find('button.text-red-700')
-    await startDeleteBtn.trigger('click')
+
     const passwordInput = wrapper.find('input[type="password"]')
     await passwordInput.setValue('mypassword')
     const verifyBtn = wrapper.findAll('button').find((b) => b.text() === 'Continue')
@@ -251,8 +211,7 @@ describe('ProfileDeleteAccountDialog.vue', () => {
       '.' +
       btoa(JSON.stringify({ sub: 1, username: 'testuser' })) +
       '.signature'
-    const startDeleteBtn = wrapper.find('button.text-red-700')
-    await startDeleteBtn.trigger('click')
+
     const passwordInput = wrapper.find('input[type="password"]')
     await passwordInput.setValue('mypassword')
     const verifyBtn = wrapper.findAll('button').find((b) => b.text() === 'Continue')
@@ -276,8 +235,6 @@ describe('ProfileDeleteAccountDialog.vue', () => {
       btoa(JSON.stringify({ sub: 1, username: 'testuser' })) +
       '.signature'
 
-    const startDeleteBtn = wrapper.find('button.text-red-700')
-    await startDeleteBtn.trigger('click')
     const passwordInput = wrapper.find('input[type="password"]')
     await passwordInput.setValue('mypassword')
     const verifyBtn = wrapper.findAll('button').find((b) => b.text() === 'Continue')

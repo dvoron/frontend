@@ -5,10 +5,23 @@ import { useAuthStore } from '@/stores/auth'
 import ProfileSettings from '@/components/ProfileSettings.vue'
 import ProfileDeleteAccountDialog from '@/components/ProfileDeleteAccountDialog.vue'
 import { updateUser } from '@/services/UserService'
+import { useRouter } from 'vue-router'
 
 vi.mock('@/services/UserService', () => ({
   updateUser: vi.fn()
 }))
+
+vi.mock('vue-router', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('vue-router')>()
+  return {
+    ...actual,
+    useRouter: vi.fn(() => ({
+      push: vi.fn(),
+      currentRoute: { value: { fullPath: '/profile' } }
+    })),
+    useRoute: vi.fn(() => ({ query: {} }))
+  }
+})
 
 describe('ProfileSettings.vue', () => {
   beforeEach(() => {
@@ -93,10 +106,8 @@ describe('ProfileSettings.vue', () => {
     const emailInput = wrapper.find('#email')
     await emailInput.setValue('newemail')
 
-    // We mocked the dialog, so we need to mock the cancelEdit method on the ref if it's called
-    // But since it's a stub, the ref might not have cancelDelete. We can mock it or just test the emit.
-    // Let's just check if cancelEdit method works.
-    wrapper.findComponent(ProfileDeleteAccountDialog).vm.$emit('cancelEdit')
+    const cancelBtn = wrapper.findAll('button').find(b => b.text() === 'Cancel')
+    if (cancelBtn) await cancelBtn.trigger('click')
     await wrapper.vm.$nextTick()
 
     expect(wrapper.emitted('editingChange')![1]).toEqual([false])
